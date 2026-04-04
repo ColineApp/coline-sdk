@@ -1,0 +1,5539 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Coline App Platform API",
+    "version": "1.0.0-beta",
+    "summary": "Workspace-native app registry, install, and runtime APIs for Coline.",
+    "description": "Canonical OpenAPI source for the current stable app-platform slice. This document covers the public store catalog plus the `/api/v1` workspace install/runtime surface."
+  },
+  "servers": [
+    {
+      "url": "https://coline.app",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Store",
+      "description": "Public store catalog and approved app releases."
+    },
+    {
+      "name": "Publisher",
+      "description": "Authenticated app registration and version creation APIs."
+    },
+    {
+      "name": "Auth",
+      "description": "Login with Coline OAuth endpoints."
+    },
+    {
+      "name": "AI",
+      "description": "Tab API endpoints for completions and model discovery."
+    },
+    {
+      "name": "Workspace installs",
+      "description": "Workspace app install and permission APIs."
+    },
+    {
+      "name": "Runtime",
+      "description": "Installed app file, index, notification, and ambient APIs."
+    },
+    {
+      "name": "Members",
+      "description": "Workspace member listing."
+    },
+    {
+      "name": "Notes",
+      "description": "Workspace notes CRUD."
+    },
+    {
+      "name": "Docs",
+      "description": "Workspace docs CRUD."
+    },
+    {
+      "name": "Drives & Files",
+      "description": "Workspace drives, files, and uploads."
+    },
+    {
+      "name": "Uploads",
+      "description": "Multipart file upload."
+    },
+    {
+      "name": "Channels",
+      "description": "Workspace channel messaging."
+    },
+    {
+      "name": "Direct Messages",
+      "description": "Direct message conversations."
+    },
+    {
+      "name": "Messages",
+      "description": "Cross-container message operations."
+    },
+    {
+      "name": "Calendar",
+      "description": "Calendar events."
+    },
+    {
+      "name": "Search",
+      "description": "Workspace full-text search."
+    },
+    {
+      "name": "Taskboards",
+      "description": "Taskboards and task management."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook event types and payload schemas."
+    }
+  ],
+  "paths": {
+    "/api/v1/tab/models": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "List Tab models",
+        "operationId": "listTabModels",
+        "responses": {
+          "200": {
+            "description": "Tab model list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TabModelsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tab/chat/completions": {
+      "post": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Create an OpenAI-compatible Tab chat completion",
+        "operationId": "createTabChatCompletion",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TabChatCompletionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OpenAI-compatible Tab chat completion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TabChatCompletionResponseEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or model error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Authorize an OAuth client",
+        "operationId": "authorizeOauthClient",
+        "parameters": [
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "code"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code_challenge",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code_challenge_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to sign-in or back to the client redirect URI"
+          },
+          "400": {
+            "description": "Invalid authorization request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Exchange an authorization code for tokens",
+        "operationId": "exchangeOauthAuthorizationCode",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthTokenExchangeInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthTokenExchangeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/userinfo": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Resolve OAuth userinfo",
+        "operationId": "getOauthUserInfo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthUserInfoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps": {
+      "get": {
+        "tags": [
+          "Store"
+        ],
+        "summary": "List store apps",
+        "operationId": "listStoreApps",
+        "responses": {
+          "200": {
+            "description": "Store apps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreAppsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Publisher"
+        ],
+        "summary": "Register a new app and initial release",
+        "operationId": "registerApp",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAppInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registered app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppVersionMutationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appKey}": {
+      "get": {
+        "tags": [
+          "Store"
+        ],
+        "summary": "Get a store app",
+        "operationId": "getStoreApp",
+        "parameters": [
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store app detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreAppResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appKey}/versions": {
+      "get": {
+        "tags": [
+          "Store"
+        ],
+        "summary": "List approved versions for a store app",
+        "operationId": "listStoreAppVersions",
+        "parameters": [
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Approved store app versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreAppVersionsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Publisher"
+        ],
+        "summary": "Create a new app version",
+        "operationId": "createAppVersion",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAppInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created app version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppVersionMutationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appKey}/versions/{versionId}/submit": {
+      "post": {
+        "tags": [
+          "Publisher"
+        ],
+        "summary": "Submit an app version for review",
+        "operationId": "submitAppVersionForReview",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "storeListed": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Submitted app version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitAppVersionForReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "List installed apps and workspace-visible catalog",
+        "operationId": "listWorkspaceApps",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace app data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Install an app into a workspace",
+        "operationId": "installWorkspaceApp",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallWorkspaceAppInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Installed app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallWorkspaceAppResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Get an installed workspace app",
+        "operationId": "getWorkspaceInstalledApp",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Installed app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceInstalledAppResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Uninstall a workspace app",
+        "operationId": "uninstallWorkspaceApp",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App uninstalled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/permissions": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Get granted workspace app permissions",
+        "operationId": "getWorkspaceAppPermissions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace app permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppPermissionsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Update granted workspace app permissions",
+        "operationId": "updateWorkspaceAppPermissions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grantedPermissions"
+                ],
+                "properties": {
+                  "grantedPermissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppPermissionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/secrets": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "List app secrets",
+        "operationId": "listWorkspaceAppSecrets",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App secrets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppSecretsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Create or rotate app secret",
+        "operationId": "createWorkspaceAppSecret",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "value"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "App secret stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateWorkspaceAppSecretResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/secrets/{secretId}": {
+      "delete": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Delete app secret",
+        "operationId": "deleteWorkspaceAppSecret",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "secretId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App secret deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/oauth-connections": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "List app OAuth connections",
+        "operationId": "listWorkspaceAppOauthConnections",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App OAuth connections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppOauthConnectionsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Create or update app OAuth connection",
+        "operationId": "createWorkspaceAppOauthConnection",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "providerKey",
+                  "accessToken",
+                  "scopes"
+                ],
+                "properties": {
+                  "providerKey": {
+                    "type": "string"
+                  },
+                  "externalAccountId": {
+                    "type": "string"
+                  },
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "refreshToken": {
+                    "type": "string"
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tokenExpiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "App OAuth connection stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateWorkspaceAppOauthConnectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/oauth-connections/{connectionId}": {
+      "delete": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Delete app OAuth connection",
+        "operationId": "deleteWorkspaceAppOauthConnection",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App OAuth connection deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/deliveries": {
+      "get": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "List app deliveries",
+        "operationId": "listWorkspaceAppDeliveries",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App deliveries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAppDeliveriesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Send a signed test delivery",
+        "operationId": "sendWorkspaceAppTestDelivery",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "eventType",
+                  "payload"
+                ],
+                "properties": {
+                  "eventType": {
+                    "type": "string"
+                  },
+                  "targetUrl": {
+                    "type": "string"
+                  },
+                  "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Test delivery recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendWorkspaceAppTestDeliveryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/deliveries/{deliveryId}/replay": {
+      "post": {
+        "tags": [
+          "Workspace installs"
+        ],
+        "summary": "Replay a stored app delivery",
+        "operationId": "replayWorkspaceAppDelivery",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendWorkspaceAppTestDeliveryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/files/{fileId}": {
+      "get": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Read an app-backed file document",
+        "operationId": "getAppFileDocument",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App-backed file document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppFileDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Update an app-backed file document",
+        "operationId": "updateAppFileDocument",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "document"
+                ],
+                "properties": {
+                  "document": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated app-backed file document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppFileDocumentUpdateResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Delete an app-backed file (soft-delete to trash)",
+        "operationId": "deleteAppFile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File trashed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/files": {
+      "get": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "List app-backed files",
+        "operationId": "listAppFiles",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "driveId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "typeKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App-backed file list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppFilesListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Create an app-backed file",
+        "operationId": "createAppFile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppFileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created app-backed file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAppFileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/actions": {
+      "post": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Execute a hosted app action",
+        "operationId": "executeAppAction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteAppActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hosted app action result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteAppActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/notifications": {
+      "post": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Create an app notification",
+        "operationId": "createAppNotification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppNotificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notification created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/index-documents": {
+      "post": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Upsert app index documents",
+        "operationId": "upsertAppIndexDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAppIndexDocumentsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Index documents upserted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpsertAppIndexDocumentsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Delete app index documents",
+        "operationId": "deleteAppIndexDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAppIndexDocumentsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Index documents deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAppIndexDocumentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/apps/{appKey}/ambient/events": {
+      "post": {
+        "tags": [
+          "Runtime"
+        ],
+        "summary": "Emit app ambient events",
+        "operationId": "emitAppAmbientEvents",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmitAppAmbientEventsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ambient events accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmitAppAmbientEventsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/uploads/initiate": {
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "summary": "Initiate a multipart file upload",
+        "operationId": "initiateUpload",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitiateUploadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Upload initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitiateUploadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/uploads/part": {
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "summary": "Upload a single part of a multipart upload",
+        "operationId": "uploadPart",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partNumber",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Part uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPartResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/uploads/complete": {
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "summary": "Finalize a multipart upload and create the file",
+        "operationId": "completeUpload",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteUploadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload complete — file created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteUploadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/taskboards/{taskboardId}/tasks/batch-create": {
+      "post": {
+        "tags": [
+          "Taskboards"
+        ],
+        "summary": "Batch create tasks in a taskboard",
+        "operationId": "batchCreateTasks",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateTasksInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tasks created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchCreateTasksResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/taskboards/{taskboardId}/tasks/batch-update": {
+      "post": {
+        "tags": [
+          "Taskboards"
+        ],
+        "summary": "Batch update tasks in a taskboard",
+        "operationId": "batchUpdateTasks",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpdateTasksInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tasks updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchUpdateTasksResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceSlug}/taskboards/{taskboardId}/tasks/batch-delete": {
+      "post": {
+        "tags": [
+          "Taskboards"
+        ],
+        "summary": "Batch delete tasks in a taskboard",
+        "operationId": "batchDeleteTasks",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "taskIds"
+                ],
+                "properties": {
+                  "taskIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tasks deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key or session-backed bearer token"
+      }
+    },
+    "schemas": {
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "OAuthErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "error_description"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        }
+      },
+      "OAuthTokenExchangeInput": {
+        "type": "object",
+        "required": [
+          "grant_type",
+          "client_id",
+          "client_secret",
+          "code",
+          "redirect_uri"
+        ],
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "const": "authorization_code"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "code_verifier": {
+            "type": "string"
+          }
+        }
+      },
+      "OAuthTokenResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "refresh_token",
+          "scope"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "Bearer"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        }
+      },
+      "OAuthUserInfoResponse": {
+        "type": "object",
+        "required": [
+          "sub",
+          "email",
+          "email_verified",
+          "name",
+          "given_name",
+          "family_name",
+          "picture",
+          "preferred_username",
+          "scope"
+        ],
+        "properties": {
+          "sub": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "given_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "family_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "picture": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preferred_username": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scope": {
+            "type": "string"
+          }
+        }
+      },
+      "TabModelRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "created",
+          "owned_by",
+          "providerModelId",
+          "pricing",
+          "capabilities"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "const": "model"
+          },
+          "created": {
+            "type": "integer"
+          },
+          "owned_by": {
+            "type": "string"
+          },
+          "providerModelId": {
+            "type": "string"
+          },
+          "pricing": {
+            "type": "object",
+            "required": [
+              "inputPerMillionUsd",
+              "outputPerMillionUsd"
+            ],
+            "properties": {
+              "inputPerMillionUsd": {
+                "type": "number"
+              },
+              "outputPerMillionUsd": {
+                "type": "number"
+              }
+            }
+          },
+          "capabilities": {
+            "type": "object",
+            "required": [
+              "streaming",
+              "surfaces"
+            ],
+            "properties": {
+              "streaming": {
+                "type": "boolean"
+              },
+              "surfaces": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TabModelsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "object",
+              "data"
+            ],
+            "properties": {
+              "object": {
+                "type": "string",
+                "const": "list"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TabModelRecord"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TabChatCompletionInput": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "stream": {
+            "type": "boolean"
+          },
+          "max_tokens": {
+            "type": "integer"
+          },
+          "max_completion_tokens": {
+            "type": "integer"
+          },
+          "temperature": {
+            "type": "number"
+          },
+          "top_p": {
+            "type": "number"
+          },
+          "tab_context": {
+            "type": "object",
+            "description": "Optional. When omitted, context is inferred from the messages array and the API key's workspace.",
+            "additionalProperties": true
+          }
+        }
+      },
+      "TabChatCompletionResponseEnvelope": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "id",
+              "object",
+              "created",
+              "model",
+              "choices",
+              "usage"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "object": {
+                "type": "string",
+                "const": "chat.completion"
+              },
+              "created": {
+                "type": "integer"
+              },
+              "model": {
+                "type": "string"
+              },
+              "choices": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "index",
+                    "message",
+                    "finish_reason"
+                  ],
+                  "properties": {
+                    "index": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "object",
+                      "required": [
+                        "role",
+                        "content"
+                      ],
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "const": "assistant"
+                        },
+                        "content": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "finish_reason": {
+                      "type": "string",
+                      "const": "stop"
+                    }
+                  }
+                }
+              },
+              "usage": {
+                "type": "object",
+                "required": [
+                  "prompt_tokens",
+                  "completion_tokens",
+                  "total_tokens"
+                ],
+                "properties": {
+                  "prompt_tokens": {
+                    "type": "integer"
+                  },
+                  "completion_tokens": {
+                    "type": "integer"
+                  },
+                  "total_tokens": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "OkResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "ok"
+            ],
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "AppCatalogItem": {
+        "type": "object",
+        "required": [
+          "appId",
+          "appKey",
+          "name",
+          "description",
+          "iconUrl",
+          "status",
+          "latestPublishedVersion",
+          "latestPublishedVersionId",
+          "isInstalled"
+        ],
+        "properties": {
+          "appId": {
+            "type": "string"
+          },
+          "appKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iconUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "latestPublishedVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latestPublishedVersionId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isInstalled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RegisteredAppDetail": {
+        "type": "object",
+        "required": [
+          "appId",
+          "appKey",
+          "name",
+          "description",
+          "iconUrl",
+          "status",
+          "ownerUserId",
+          "storeListed",
+          "latestPublishedVersion",
+          "latestPublishedVersionId"
+        ],
+        "properties": {
+          "appId": {
+            "type": "string"
+          },
+          "appKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iconUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "ownerUserId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "storeListed": {
+            "type": "boolean"
+          },
+          "latestPublishedVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latestPublishedVersionId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "RegisteredAppVersionSummary": {
+        "type": "object",
+        "required": [
+          "versionId",
+          "version",
+          "status",
+          "reviewStatus",
+          "apiBaseUrl",
+          "permissions",
+          "notificationChannels",
+          "kairo",
+          "fileTypes",
+          "submittedAt",
+          "reviewedAt",
+          "reviewNotes",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reviewStatus": {
+            "type": "string"
+          },
+          "apiBaseUrl": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notificationChannels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "name",
+                "defaultDeliveries",
+                "defaultPriority"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "defaultDeliveries": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "defaultPriority": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "kairo": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fileTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "typeKey",
+                "name",
+                "description"
+              ],
+              "properties": {
+                "typeKey": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "submittedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reviewNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InstalledAppSummary": {
+        "type": "object",
+        "required": [
+          "installId",
+          "appId",
+          "appKey",
+          "name",
+          "description",
+          "iconUrl",
+          "status",
+          "installScope",
+          "scopeSubjectId",
+          "version"
+        ],
+        "properties": {
+          "installId": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "appKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iconUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "installScope": {
+            "type": "string"
+          },
+          "scopeSubjectId": {
+            "type": "string"
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "StoreAppsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "apps"
+            ],
+            "properties": {
+              "apps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RegisteredAppDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "StoreAppResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "app"
+            ],
+            "properties": {
+              "app": {
+                "$ref": "#/components/schemas/RegisteredAppDetail"
+              }
+            }
+          }
+        }
+      },
+      "StoreAppVersionsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "versions"
+            ],
+            "properties": {
+              "versions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RegisteredAppVersionSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceAppsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "installedApps",
+              "catalog",
+              "permissions"
+            ],
+            "properties": {
+              "installedApps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InstalledAppSummary"
+                }
+              },
+              "catalog": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppCatalogItem"
+                }
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "InstallWorkspaceAppInput": {
+        "type": "object",
+        "required": [
+          "appId"
+        ],
+        "properties": {
+          "appId": {
+            "type": "string"
+          },
+          "pinnedVersionId": {
+            "type": "string"
+          },
+          "grantedPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InstallWorkspaceAppResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "installId",
+              "appId",
+              "appKey",
+              "version",
+              "grantedPermissions"
+            ],
+            "properties": {
+              "installId": {
+                "type": "string"
+              },
+              "appId": {
+                "type": "string"
+              },
+              "appKey": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "grantedPermissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceInstalledAppResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "install",
+              "permissions"
+            ],
+            "properties": {
+              "install": {
+                "$ref": "#/components/schemas/InstalledAppSummary"
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceAppPermissionsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "install",
+              "availablePermissions",
+              "grantedPermissions",
+              "permissions"
+            ],
+            "properties": {
+              "install": {
+                "$ref": "#/components/schemas/InstalledAppSummary"
+              },
+              "availablePermissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "grantedPermissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RegisterAppInput": {
+        "type": "object",
+        "required": [
+          "version",
+          "manifest",
+          "fileTypes"
+        ],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "manifest": {
+            "type": "object",
+            "required": [
+              "key",
+              "name",
+              "permissions",
+              "notificationChannels",
+              "hosting"
+            ],
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "notificationChannels": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "name",
+                    "defaultDeliveries",
+                    "defaultPriority"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "defaultDeliveries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "defaultPriority": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "kairo": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "hosting": {
+                "type": "object",
+                "required": [
+                  "mode",
+                  "baseUrl"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "const": "external"
+                  },
+                  "baseUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "fileTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "typeKey",
+                "name",
+                "storage",
+                "indexable",
+                "homeRenderMode"
+              ],
+              "properties": {
+                "typeKey": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "storage": {
+                  "type": "string",
+                  "const": "coline_document"
+                },
+                "indexable": {
+                  "type": "boolean"
+                },
+                "homeRenderMode": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AppVersionMutationResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "appId",
+              "appKey",
+              "versionId",
+              "version"
+            ],
+            "properties": {
+              "appId": {
+                "type": "string"
+              },
+              "appKey": {
+                "type": "string"
+              },
+              "versionId": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "SubmitAppVersionForReviewResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "appId",
+              "appKey",
+              "versionId",
+              "version",
+              "reviewStatus",
+              "storeListed"
+            ],
+            "properties": {
+              "appId": {
+                "type": "string"
+              },
+              "appKey": {
+                "type": "string"
+              },
+              "versionId": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "reviewStatus": {
+                "type": "string",
+                "const": "submitted"
+              },
+              "storeListed": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceAppSecretsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "install",
+              "secrets",
+              "permissions"
+            ],
+            "properties": {
+              "install": {
+                "$ref": "#/components/schemas/InstalledAppSummary"
+              },
+              "secrets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "key",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateWorkspaceAppSecretResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "secret",
+              "value"
+            ],
+            "properties": {
+              "secret": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "key",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceAppOauthConnectionsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "install",
+              "connections",
+              "permissions"
+            ],
+            "properties": {
+              "install": {
+                "$ref": "#/components/schemas/InstalledAppSummary"
+              },
+              "connections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "providerKey",
+                    "externalAccountId",
+                    "scopes",
+                    "tokenExpiresAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "providerKey": {
+                      "type": "string"
+                    },
+                    "externalAccountId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "tokenExpiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateWorkspaceAppOauthConnectionResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "connection"
+            ],
+            "properties": {
+              "connection": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "providerKey",
+                  "externalAccountId",
+                  "scopes",
+                  "tokenExpiresAt",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "providerKey": {
+                    "type": "string"
+                  },
+                  "externalAccountId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tokenExpiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "WorkspaceAppDeliveriesResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "install",
+              "deliveries",
+              "permissions"
+            ],
+            "properties": {
+              "install": {
+                "$ref": "#/components/schemas/InstalledAppSummary"
+              },
+              "deliveries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "eventType",
+                    "targetUrl",
+                    "status",
+                    "attemptCount",
+                    "lastStatusCode",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "eventType": {
+                      "type": "string"
+                    },
+                    "targetUrl": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "attemptCount": {
+                      "type": "integer"
+                    },
+                    "lastStatusCode": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              },
+              "permissions": {
+                "type": "object",
+                "required": [
+                  "canManageApps"
+                ],
+                "properties": {
+                  "canManageApps": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "SendWorkspaceAppTestDeliveryResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "delivery"
+            ],
+            "properties": {
+              "delivery": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "eventType",
+                  "targetUrl",
+                  "status",
+                  "attemptCount",
+                  "lastStatusCode",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "eventType": {
+                    "type": "string"
+                  },
+                  "targetUrl": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "attemptCount": {
+                    "type": "integer"
+                  },
+                  "lastStatusCode": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AppFilesListResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "files",
+              "availableFileTypes"
+            ],
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "driveId",
+                    "parentId",
+                    "name",
+                    "fileType",
+                    "typeLabel",
+                    "appKey",
+                    "appName",
+                    "openHref",
+                    "updatedAt",
+                    "createdAt",
+                    "version",
+                    "capabilities"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "driveId": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "fileType": {
+                      "type": "string"
+                    },
+                    "typeLabel": {
+                      "type": "string"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "openHref": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "version": {
+                      "type": "integer"
+                    },
+                    "capabilities": {
+                      "type": "object",
+                      "required": [
+                        "canRead",
+                        "canWrite",
+                        "canManage"
+                      ],
+                      "properties": {
+                        "canRead": {
+                          "type": "boolean"
+                        },
+                        "canWrite": {
+                          "type": "boolean"
+                        },
+                        "canManage": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "availableFileTypes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "typeKey",
+                    "name",
+                    "description"
+                  ],
+                  "properties": {
+                    "typeKey": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateAppFileInput": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "typeKey": {
+            "type": "string"
+          },
+          "driveId": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "document": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "CreateAppFileResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "file",
+              "document",
+              "version"
+            ],
+            "properties": {
+              "file": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "driveId",
+                  "parentId",
+                  "name",
+                  "fileType",
+                  "typeLabel",
+                  "appKey",
+                  "appName",
+                  "openHref",
+                  "updatedAt",
+                  "createdAt",
+                  "version",
+                  "capabilities"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "driveId": {
+                    "type": "string"
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "fileType": {
+                    "type": "string"
+                  },
+                  "typeLabel": {
+                    "type": "string"
+                  },
+                  "appKey": {
+                    "type": "string"
+                  },
+                  "appName": {
+                    "type": "string"
+                  },
+                  "openHref": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "version": {
+                    "type": "integer"
+                  },
+                  "capabilities": {
+                    "type": "object",
+                    "required": [
+                      "canRead",
+                      "canWrite",
+                      "canManage"
+                    ],
+                    "properties": {
+                      "canRead": {
+                        "type": "boolean"
+                      },
+                      "canWrite": {
+                        "type": "boolean"
+                      },
+                      "canManage": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              },
+              "document": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "ExecuteAppActionInput": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "payload": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "fileId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ExecuteAppActionResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ok",
+                      "refresh"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "type",
+                  "href"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "navigate"
+                    ]
+                  },
+                  "href": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "type",
+                  "fileId"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "open_file"
+                    ]
+                  },
+                  "fileId": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "AppFileDocumentResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "file",
+              "document",
+              "version",
+              "capabilities"
+            ],
+            "properties": {
+              "file": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "fileType",
+                  "appKey",
+                  "appName",
+                  "typeLabel",
+                  "openHref",
+                  "updatedAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "fileType": {
+                    "type": "string"
+                  },
+                  "appKey": {
+                    "type": "string"
+                  },
+                  "appName": {
+                    "type": "string"
+                  },
+                  "typeLabel": {
+                    "type": "string"
+                  },
+                  "openHref": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "document": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "version": {
+                "type": "integer"
+              },
+              "capabilities": {
+                "type": "object",
+                "required": [
+                  "canRead",
+                  "canWrite",
+                  "canManage"
+                ],
+                "properties": {
+                  "canRead": {
+                    "type": "boolean"
+                  },
+                  "canWrite": {
+                    "type": "boolean"
+                  },
+                  "canManage": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AppFileDocumentUpdateResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "document",
+              "version",
+              "updatedAt"
+            ],
+            "properties": {
+              "document": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "version": {
+                "type": "integer"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "CreateAppNotificationInput": {
+        "type": "object",
+        "required": [
+          "channelKey",
+          "typeKey",
+          "recipients",
+          "title"
+        ],
+        "properties": {
+          "channelKey": {
+            "type": "string"
+          },
+          "typeKey": {
+            "type": "string"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "userId"
+              ],
+              "properties": {
+                "userId": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "targetUrl": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "dedupeKey": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "UpsertAppIndexDocumentsInput": {
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "documentKey",
+                "documentType",
+                "title"
+              ],
+              "properties": {
+                "documentKey": {
+                  "type": "string"
+                },
+                "documentType": {
+                  "type": "string"
+                },
+                "fileId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "visibilityMode": {
+                  "type": "string"
+                },
+                "visibility": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "subjectType",
+                      "subjectId"
+                    ],
+                    "properties": {
+                      "subjectType": {
+                        "type": "string"
+                      },
+                      "subjectId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpsertAppIndexDocumentsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "documents"
+            ],
+            "properties": {
+              "documents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "documentKey",
+                    "visibilityMode"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "documentKey": {
+                      "type": "string"
+                    },
+                    "visibilityMode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "DeleteAppIndexDocumentsInput": {
+        "type": "object",
+        "required": [
+          "documentKeys"
+        ],
+        "properties": {
+          "documentKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DeleteAppIndexDocumentsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "deleted"
+            ],
+            "properties": {
+              "deleted": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "documentKey"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "documentKey": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "EmitAppAmbientEventsInput": {
+        "type": "object",
+        "required": [
+          "events"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "sourceKind",
+                "action",
+                "entityType",
+                "entityId",
+                "dedupeKey"
+              ],
+              "properties": {
+                "sourceKind": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "entityType": {
+                  "type": "string"
+                },
+                "entityId": {
+                  "type": "string"
+                },
+                "actorUserId": {
+                  "type": "string"
+                },
+                "containerType": {
+                  "type": "string"
+                },
+                "containerId": {
+                  "type": "string"
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "dedupeKey": {
+                  "type": "string"
+                },
+                "payload": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "schemaVersion": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "EmitAppAmbientEventsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "events"
+            ],
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "dedupeKey"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "dedupeKey": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "InitiateUploadInput": {
+        "type": "object",
+        "required": [
+          "fileName",
+          "mimeType",
+          "sizeBytes",
+          "driveId"
+        ],
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 127
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 524288000
+          },
+          "driveId": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional parent folder ID."
+          }
+        }
+      },
+      "InitiateUploadResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "uploadId",
+              "partCount"
+            ],
+            "properties": {
+              "uploadId": {
+                "type": "string"
+              },
+              "partCount": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "UploadPartResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "partNumber",
+              "etag"
+            ],
+            "properties": {
+              "partNumber": {
+                "type": "integer"
+              },
+              "etag": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "CompleteUploadInput": {
+        "type": "object",
+        "required": [
+          "uploadId",
+          "parts"
+        ],
+        "properties": {
+          "uploadId": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "partNumber",
+                "etag"
+              ],
+              "properties": {
+                "partNumber": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "etag": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CompleteUploadResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "file"
+            ],
+            "properties": {
+              "file": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "driveId",
+                  "name",
+                  "fileType",
+                  "mimeType",
+                  "sizeBytes",
+                  "createdAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "driveId": {
+                    "type": "string"
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "fileType": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sizeBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "storagePath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "color": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchCreateTasksInput": {
+        "type": "object",
+        "required": [
+          "tasks"
+        ],
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "statusId": {
+                  "type": "string"
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "low",
+                    "medium",
+                    "high",
+                    "urgent"
+                  ]
+                },
+                "dueDate": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "labels": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "assigneeUserIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchCreateTasksResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "tasks"
+            ],
+            "properties": {
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchUpdateTasksInput": {
+        "type": "object",
+        "required": [
+          "tasks"
+        ],
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "required": [
+                "taskId"
+              ],
+              "properties": {
+                "taskId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "statusId": {
+                  "type": "string"
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "low",
+                    "medium",
+                    "high",
+                    "urgent"
+                  ]
+                },
+                "dueDate": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "labels": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "assigneeUserIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchUpdateTasksResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "tasks"
+            ],
+            "properties": {
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TaskSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "isCompleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "statusId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "statusName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ]
+          },
+          "isCompleted": {
+            "type": "boolean"
+          },
+          "dueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assigneeUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskboardId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookEventBase": {
+        "type": "object",
+        "required": [
+          "type",
+          "deliveryId",
+          "timestamp",
+          "workspaceId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Event type discriminator."
+          },
+          "deliveryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspace": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WebhookEventMessageCreated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "message.created"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "messageId",
+                  "containerType",
+                  "containerId",
+                  "plaintext"
+                ],
+                "properties": {
+                  "messageId": {
+                    "type": "string"
+                  },
+                  "containerType": {
+                    "type": "string"
+                  },
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "authorUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "plaintext": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventMessageUpdated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "message.updated"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "messageId",
+                  "containerType",
+                  "containerId",
+                  "plaintext"
+                ],
+                "properties": {
+                  "messageId": {
+                    "type": "string"
+                  },
+                  "containerType": {
+                    "type": "string"
+                  },
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "plaintext": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventMessageDeleted": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "message.deleted"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "messageId",
+                  "containerType",
+                  "containerId"
+                ],
+                "properties": {
+                  "messageId": {
+                    "type": "string"
+                  },
+                  "containerType": {
+                    "type": "string"
+                  },
+                  "containerId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventReactionAdded": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "reaction.added"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "messageId",
+                  "userId",
+                  "emoji"
+                ],
+                "properties": {
+                  "messageId": {
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventNoteCreated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "note.created"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "noteId",
+                  "title"
+                ],
+                "properties": {
+                  "noteId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdByUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventNoteUpdated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "note.updated"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "noteId",
+                  "title"
+                ],
+                "properties": {
+                  "noteId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventNoteDeleted": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "note.deleted"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "noteId"
+                ],
+                "properties": {
+                  "noteId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventTaskCreated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "task.created"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "taskId",
+                  "taskboardId",
+                  "title",
+                  "priority"
+                ],
+                "properties": {
+                  "taskId": {
+                    "type": "string"
+                  },
+                  "taskboardId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "string"
+                  },
+                  "createdByUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventTaskUpdated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "task.updated"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "taskId",
+                  "taskboardId",
+                  "title",
+                  "priority",
+                  "isCompleted"
+                ],
+                "properties": {
+                  "taskId": {
+                    "type": "string"
+                  },
+                  "taskboardId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "string"
+                  },
+                  "isCompleted": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventTaskDeleted": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "task.deleted"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "taskId",
+                  "taskboardId"
+                ],
+                "properties": {
+                  "taskId": {
+                    "type": "string"
+                  },
+                  "taskboardId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventCalendarEventCreated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "calendar_event.created"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "eventId",
+                  "title",
+                  "startTime",
+                  "endTime"
+                ],
+                "properties": {
+                  "eventId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventMemberJoined": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "member.joined"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "email",
+                  "roles"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WebhookEventMemberLeft": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookEventBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "member.left"
+              },
+              "data": {
+                "type": "object",
+                "required": [
+                  "userId"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
