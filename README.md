@@ -37,7 +37,7 @@ app.defineFileType({
 app.onHomeRender((ctx) =>
   ui.stack([
     ui.heading("Todos"),
-    ui.text(`Workspace: ${ctx.workspace.name}`),
+    ui.text(`Workspace: ${ctx.workspace.workspaceName}`),
     ui.button("New Todo", {
       action: actions.createFile({
         name: "Untitled Todo",
@@ -261,6 +261,142 @@ ui.emptyState({
   title: "No items yet",
   description: "Create your first item.",
   action: actions.custom("my-app.create"),
+});
+```
+
+### Containers & Forms
+
+```ts
+// Card with header, body, and footer
+ui.card({
+  title: "Card Title",
+  description: "Card description text",
+  children: [ui.text("Body content")],
+  footer: [ui.button("Save", { action: actions.custom("save") })],
+  size: "default", // or "sm"
+});
+
+// Vertical or horizontal stack (alias: ui.row for horizontal)
+ui.stack([child1, child2], { direction: "vertical", gap: "md" });
+ui.row([badge1, badge2], { gap: "sm" }); // horizontal shortcut
+
+// Tabs for organizing content
+ui.tabs({
+  tabs: [
+    { label: "Tab 1", value: "tab1", content: [ui.text("Content 1")] },
+    { label: "Tab 2", value: "tab2", content: [ui.text("Content 2")] },
+  ],
+  defaultValue: "tab1",
+});
+
+// Form with submit action
+ui.form({
+  children: [
+    ui.input({ name: "email", label: "Email", type: "email" }),
+    ui.input({ name: "password", label: "Password", type: "text" }),
+  ],
+  submitAction: actions.custom("submit-form"),
+  submitLabel: "Sign In",
+});
+
+// Collapsible section
+ui.collapsible({
+  title: "Advanced Settings",
+  children: [ui.text("Hidden content")],
+  defaultOpen: false,
+});
+
+// Field wrapper with label, description, and error
+ui.field({
+  label: "Username",
+  description: "Choose a unique username",
+  error: "Username is already taken",
+  children: [ui.input({ name: "username" })],
+});
+```
+
+### Extended Components
+
+```ts
+// Avatar with fallback text
+ui.avatar({ fallback: "JD", src: "https://...", size: "default" }); // sm, default, lg
+
+// Checkbox with optional action
+ui.checkbox({
+  name: "agree",
+  label: "I agree to terms",
+  defaultChecked: false,
+  action: actions.custom("toggle-agree"),
+});
+
+// Switch (toggle) with optional action
+ui.switch({
+  name: "notifications",
+  label: "Enable notifications",
+  defaultChecked: true,
+  action: actions.custom("toggle-notifications"),
+});
+
+// Progress bar (0-100)
+ui.progress(75, { label: "Uploading..." });
+
+// Alert banner
+ui.alert({
+  title: "Success",
+  description: "Your changes have been saved.",
+  tone: "success", // info, success, warning, error
+});
+
+// Radio group
+ui.radioGroup({
+  name: "plan",
+  label: "Select a plan",
+  options: [
+    { value: "free", label: "Free" },
+    { value: "pro", label: "Pro" },
+    { value: "enterprise", label: "Enterprise" },
+  ],
+  defaultValue: "free",
+  action: actions.custom("select-plan"),
+});
+
+// Breadcrumb navigation
+ui.breadcrumb({
+  items: [
+    { label: "Home", action: actions.openAppHome() },
+    { label: "Settings", href: "/settings" },
+    { label: "Profile" },
+  ],
+});
+
+// Toggle button
+ui.toggle({
+  label: "Star",
+  defaultPressed: false,
+  variant: "default", // or "outline"
+  action: actions.custom("star-item"),
+});
+
+// Slider input
+ui.slider({
+  name: "volume",
+  label: "Volume",
+  min: 0,
+  max: 100,
+  step: 1,
+  defaultValue: 50,
+});
+
+// Skeleton loading placeholder
+ui.skeleton({ width: "200px", height: "20px", rounded: true });
+
+// Dropdown menu
+ui.menu({
+  trigger: "Actions",
+  items: [
+    { label: "Edit", action: actions.custom("edit") },
+    { label: "Delete", action: actions.custom("delete"), tone: "danger" },
+  ],
 });
 ```
 
