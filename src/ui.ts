@@ -143,6 +143,134 @@ const uiTableNodeSchema = z.object({
   }),
 });
 
+// ---------------------------------------------------------------------------
+// Extended component schemas
+// ---------------------------------------------------------------------------
+
+const uiAvatarNodeSchema = z.object({
+  type: z.literal("Avatar"),
+  props: z.object({
+    src: z.string().url().max(2000).optional(),
+    fallback: z.string().min(1).max(10),
+    size: z.enum(["sm", "default", "lg"]).default("default"),
+  }),
+});
+
+const uiCheckboxNodeSchema = z.object({
+  type: z.literal("Checkbox"),
+  props: z.object({
+    name: z.string().min(1).max(120),
+    label: z.string().max(200).optional(),
+    defaultChecked: z.boolean().default(false),
+    action: uiActionSchema.optional(),
+  }),
+});
+
+const uiSwitchNodeSchema = z.object({
+  type: z.literal("Switch"),
+  props: z.object({
+    name: z.string().min(1).max(120),
+    label: z.string().max(200).optional(),
+    defaultChecked: z.boolean().default(false),
+    action: uiActionSchema.optional(),
+  }),
+});
+
+const uiProgressNodeSchema = z.object({
+  type: z.literal("Progress"),
+  props: z.object({
+    value: z.number().min(0).max(100),
+    label: z.string().max(200).optional(),
+  }),
+});
+
+const uiAlertNodeSchema = z.object({
+  type: z.literal("Alert"),
+  props: z.object({
+    title: z.string().min(1).max(200),
+    description: z.string().max(1000).optional(),
+    tone: z.enum(["info", "success", "warning", "error"]).default("info"),
+  }),
+});
+
+const uiRadioGroupNodeSchema = z.object({
+  type: z.literal("RadioGroup"),
+  props: z.object({
+    name: z.string().min(1).max(120),
+    label: z.string().max(200).optional(),
+    options: z.array(
+      z.object({
+        value: z.string().min(1).max(200),
+        label: z.string().min(1).max(200),
+      }),
+    ).min(1).max(50),
+    defaultValue: z.string().max(200).optional(),
+    action: uiActionSchema.optional(),
+  }),
+});
+
+const uiBreadcrumbNodeSchema = z.object({
+  type: z.literal("Breadcrumb"),
+  props: z.object({
+    items: z.array(
+      z.object({
+        label: z.string().min(1).max(200),
+        href: z.string().max(2000).optional(),
+        action: uiActionSchema.optional(),
+      }),
+    ).min(1).max(10),
+  }),
+});
+
+const uiToggleNodeSchema = z.object({
+  type: z.literal("Toggle"),
+  props: z.object({
+    label: z.string().min(1).max(120),
+    defaultPressed: z.boolean().default(false),
+    variant: z.enum(["default", "outline"]).default("default"),
+    action: uiActionSchema.optional(),
+  }),
+});
+
+const uiSliderNodeSchema = z.object({
+  type: z.literal("Slider"),
+  props: z.object({
+    name: z.string().min(1).max(120),
+    label: z.string().max(200).optional(),
+    min: z.number().default(0),
+    max: z.number().default(100),
+    step: z.number().min(0.01).default(1),
+    defaultValue: z.number().optional(),
+  }),
+});
+
+const uiSkeletonNodeSchema = z.object({
+  type: z.literal("Skeleton"),
+  props: z.object({
+    width: z.string().max(50).optional(),
+    height: z.string().max(50).optional(),
+    rounded: z.boolean().default(false),
+  }),
+});
+
+const uiMenuNodeSchema = z.object({
+  type: z.literal("Menu"),
+  props: z.object({
+    trigger: z.string().min(1).max(120),
+    items: z.array(
+      z.object({
+        label: z.string().min(1).max(200),
+        action: uiActionSchema,
+        tone: z.enum(["default", "danger"]).default("default"),
+      }),
+    ).min(1).max(20),
+  }),
+});
+
+// ---------------------------------------------------------------------------
+// Node types
+// ---------------------------------------------------------------------------
+
 type ColineUiNodeBase =
   | z.infer<typeof uiTextNodeSchema>
   | z.infer<typeof uiHeadingNodeSchema>
@@ -157,21 +285,91 @@ type ColineUiNodeBase =
   | z.infer<typeof uiCodeBlockNodeSchema>
   | z.infer<typeof uiInputNodeSchema>
   | z.infer<typeof uiSelectNodeSchema>
-  | z.infer<typeof uiTableNodeSchema>;
+  | z.infer<typeof uiTableNodeSchema>
+  | z.infer<typeof uiAvatarNodeSchema>
+  | z.infer<typeof uiCheckboxNodeSchema>
+  | z.infer<typeof uiSwitchNodeSchema>
+  | z.infer<typeof uiProgressNodeSchema>
+  | z.infer<typeof uiAlertNodeSchema>
+  | z.infer<typeof uiRadioGroupNodeSchema>
+  | z.infer<typeof uiBreadcrumbNodeSchema>
+  | z.infer<typeof uiToggleNodeSchema>
+  | z.infer<typeof uiSliderNodeSchema>
+  | z.infer<typeof uiSkeletonNodeSchema>
+  | z.infer<typeof uiMenuNodeSchema>;
 
-export type ColineUiNode = ColineUiNodeBase | ColineUiStackNode;
+export type ColineUiNode =
+  | ColineUiNodeBase
+  | ColineUiStackNode
+  | ColineUiCardNode
+  | ColineUiTabsNode
+  | ColineUiFormNode
+  | ColineUiCollapsibleNode
+  | ColineUiFieldNode;
 
 export interface ColineUiStackNode {
   type: "Stack";
   props: {
-    direction?: "vertical" | "horizontal";
-    gap?: "xs" | "sm" | "md" | "lg";
+    direction?: "vertical" | "horizontal" | undefined;
+    gap?: "xs" | "sm" | "md" | "lg" | undefined;
+    children: ColineUiNode[];
+  };
+}
+
+export interface ColineUiCardNode {
+  type: "Card";
+  props: {
+    title?: string | undefined;
+    description?: string | undefined;
+    children?: ColineUiNode[] | undefined;
+    footer?: ColineUiNode[] | undefined;
+    size?: "default" | "sm" | undefined;
+  };
+}
+
+export interface ColineUiTabsNode {
+  type: "Tabs";
+  props: {
+    tabs: Array<{
+      label: string;
+      value: string;
+      content: ColineUiNode[];
+    }>;
+    defaultValue?: string | undefined;
+  };
+}
+
+export interface ColineUiFormNode {
+  type: "Form";
+  props: {
+    children: ColineUiNode[];
+    submitAction: ColineUiAction;
+    submitLabel?: string | undefined;
+  };
+}
+
+export interface ColineUiCollapsibleNode {
+  type: "Collapsible";
+  props: {
+    title: string;
+    children: ColineUiNode[];
+    defaultOpen?: boolean | undefined;
+  };
+}
+
+export interface ColineUiFieldNode {
+  type: "Field";
+  props: {
+    label?: string | undefined;
+    description?: string | undefined;
+    error?: string | undefined;
     children: ColineUiNode[];
   };
 }
 
 const uiNodeLazySchema: z.ZodType<ColineUiNode> = z.lazy(() =>
   z.union([
+    // Base components
     uiTextNodeSchema,
     uiHeadingNodeSchema,
     uiBadgeNodeSchema,
@@ -186,11 +384,72 @@ const uiNodeLazySchema: z.ZodType<ColineUiNode> = z.lazy(() =>
     uiInputNodeSchema,
     uiSelectNodeSchema,
     uiTableNodeSchema,
+    // Extended components
+    uiAvatarNodeSchema,
+    uiCheckboxNodeSchema,
+    uiSwitchNodeSchema,
+    uiProgressNodeSchema,
+    uiAlertNodeSchema,
+    uiRadioGroupNodeSchema,
+    uiBreadcrumbNodeSchema,
+    uiToggleNodeSchema,
+    uiSliderNodeSchema,
+    uiSkeletonNodeSchema,
+    uiMenuNodeSchema,
+    // Container components (recursive)
     z.object({
       type: z.literal("Stack"),
       props: z.object({
         direction: z.enum(["vertical", "horizontal"]).default("vertical"),
         gap: z.enum(["xs", "sm", "md", "lg"]).default("md"),
+        children: z.array(uiNodeLazySchema),
+      }),
+    }),
+    z.object({
+      type: z.literal("Card"),
+      props: z.object({
+        title: z.string().min(1).max(200).optional(),
+        description: z.string().max(1000).optional(),
+        children: z.array(uiNodeLazySchema).optional(),
+        footer: z.array(uiNodeLazySchema).optional(),
+        size: z.enum(["default", "sm"]).default("default"),
+      }),
+    }),
+    z.object({
+      type: z.literal("Tabs"),
+      props: z.object({
+        tabs: z.array(
+          z.object({
+            label: z.string().min(1).max(200),
+            value: z.string().min(1).max(120),
+            content: z.array(uiNodeLazySchema),
+          }),
+        ).min(1).max(20),
+        defaultValue: z.string().max(120).optional(),
+      }),
+    }),
+    z.object({
+      type: z.literal("Form"),
+      props: z.object({
+        children: z.array(uiNodeLazySchema),
+        submitAction: uiActionSchema,
+        submitLabel: z.string().min(1).max(120).default("Submit"),
+      }),
+    }),
+    z.object({
+      type: z.literal("Collapsible"),
+      props: z.object({
+        title: z.string().min(1).max(200),
+        children: z.array(uiNodeLazySchema),
+        defaultOpen: z.boolean().default(false),
+      }),
+    }),
+    z.object({
+      type: z.literal("Field"),
+      props: z.object({
+        label: z.string().max(200).optional(),
+        description: z.string().max(500).optional(),
+        error: z.string().max(500).optional(),
         children: z.array(uiNodeLazySchema),
       }),
     }),
@@ -513,6 +772,274 @@ export const ui = {
       props: {
         columns: input.columns,
         rows: input.rows,
+      },
+    });
+  },
+
+  // -------------------------------------------------------------------------
+  // Extended components
+  // -------------------------------------------------------------------------
+
+  card(input: {
+    title?: string;
+    description?: string;
+    children?: ColineUiNode[];
+    footer?: ColineUiNode[];
+    size?: "default" | "sm";
+  } = {}): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Card",
+      props: {
+        ...(input.title ? { title: input.title } : {}),
+        ...(input.description ? { description: input.description } : {}),
+        ...(input.children ? { children: input.children } : {}),
+        ...(input.footer ? { footer: input.footer } : {}),
+        ...(input.size ? { size: input.size } : {}),
+      },
+    });
+  },
+
+  avatar(input: {
+    fallback: string;
+    src?: string;
+    size?: "sm" | "default" | "lg";
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Avatar",
+      props: {
+        fallback: input.fallback,
+        ...(input.src ? { src: input.src } : {}),
+        ...(input.size ? { size: input.size } : {}),
+      },
+    });
+  },
+
+  checkbox(input: {
+    name: string;
+    label?: string;
+    defaultChecked?: boolean;
+    action?: ColineUiAction;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Checkbox",
+      props: {
+        name: input.name,
+        ...(input.label ? { label: input.label } : {}),
+        ...(input.defaultChecked ? { defaultChecked: true } : {}),
+        ...(input.action ? { action: input.action } : {}),
+      },
+    });
+  },
+
+  switch(input: {
+    name: string;
+    label?: string;
+    defaultChecked?: boolean;
+    action?: ColineUiAction;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Switch",
+      props: {
+        name: input.name,
+        ...(input.label ? { label: input.label } : {}),
+        ...(input.defaultChecked ? { defaultChecked: true } : {}),
+        ...(input.action ? { action: input.action } : {}),
+      },
+    });
+  },
+
+  tabs(input: {
+    tabs: Array<{
+      label: string;
+      value: string;
+      content: ColineUiNode[];
+    }>;
+    defaultValue?: string;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Tabs",
+      props: {
+        tabs: input.tabs,
+        ...(input.defaultValue ? { defaultValue: input.defaultValue } : {}),
+      },
+    });
+  },
+
+  progress(
+    value: number,
+    options: { label?: string } = {},
+  ): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Progress",
+      props: {
+        value,
+        ...(options.label ? { label: options.label } : {}),
+      },
+    });
+  },
+
+  alert(input: {
+    title: string;
+    description?: string;
+    tone?: "info" | "success" | "warning" | "error";
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Alert",
+      props: {
+        title: input.title,
+        ...(input.description ? { description: input.description } : {}),
+        ...(input.tone ? { tone: input.tone } : {}),
+      },
+    });
+  },
+
+  form(input: {
+    children: ColineUiNode[];
+    submitAction: ColineUiAction;
+    submitLabel?: string;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Form",
+      props: {
+        children: input.children,
+        submitAction: input.submitAction,
+        ...(input.submitLabel ? { submitLabel: input.submitLabel } : {}),
+      },
+    });
+  },
+
+  radioGroup(input: {
+    name: string;
+    label?: string;
+    options: Array<{ value: string; label: string }>;
+    defaultValue?: string;
+    action?: ColineUiAction;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "RadioGroup",
+      props: {
+        name: input.name,
+        options: input.options,
+        ...(input.label ? { label: input.label } : {}),
+        ...(input.defaultValue ? { defaultValue: input.defaultValue } : {}),
+        ...(input.action ? { action: input.action } : {}),
+      },
+    });
+  },
+
+  collapsible(input: {
+    title: string;
+    children: ColineUiNode[];
+    defaultOpen?: boolean;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Collapsible",
+      props: {
+        title: input.title,
+        children: input.children,
+        ...(input.defaultOpen ? { defaultOpen: true } : {}),
+      },
+    });
+  },
+
+  breadcrumb(input: {
+    items: Array<{
+      label: string;
+      href?: string;
+      action?: ColineUiAction;
+    }>;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Breadcrumb",
+      props: {
+        items: input.items,
+      },
+    });
+  },
+
+  toggle(input: {
+    label: string;
+    defaultPressed?: boolean;
+    variant?: "default" | "outline";
+    action?: ColineUiAction;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Toggle",
+      props: {
+        label: input.label,
+        ...(input.defaultPressed ? { defaultPressed: true } : {}),
+        ...(input.variant ? { variant: input.variant } : {}),
+        ...(input.action ? { action: input.action } : {}),
+      },
+    });
+  },
+
+  field(input: {
+    children: ColineUiNode[];
+    label?: string;
+    description?: string;
+    error?: string;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Field",
+      props: {
+        children: input.children,
+        ...(input.label ? { label: input.label } : {}),
+        ...(input.description ? { description: input.description } : {}),
+        ...(input.error ? { error: input.error } : {}),
+      },
+    });
+  },
+
+  slider(input: {
+    name: string;
+    label?: string;
+    min?: number;
+    max?: number;
+    step?: number;
+    defaultValue?: number;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Slider",
+      props: {
+        name: input.name,
+        ...(input.label ? { label: input.label } : {}),
+        ...(input.min !== undefined ? { min: input.min } : {}),
+        ...(input.max !== undefined ? { max: input.max } : {}),
+        ...(input.step !== undefined ? { step: input.step } : {}),
+        ...(input.defaultValue !== undefined ? { defaultValue: input.defaultValue } : {}),
+      },
+    });
+  },
+
+  skeleton(input: {
+    width?: string;
+    height?: string;
+    rounded?: boolean;
+  } = {}): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Skeleton",
+      props: {
+        ...(input.width ? { width: input.width } : {}),
+        ...(input.height ? { height: input.height } : {}),
+        ...(input.rounded ? { rounded: true } : {}),
+      },
+    });
+  },
+
+  menu(input: {
+    trigger: string;
+    items: Array<{
+      label: string;
+      action: ColineUiAction;
+      tone?: "default" | "danger";
+    }>;
+  }): ColineUiNode {
+    return colineUiNodeSchema.parse({
+      type: "Menu",
+      props: {
+        trigger: input.trigger,
+        items: input.items,
       },
     });
   },
