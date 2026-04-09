@@ -242,6 +242,19 @@ export interface WorkspaceMembersResponse {
   members: WorkspaceMember[];
 }
 
+export interface MyWorkspaceSummary {
+  id: string;
+  slug: string;
+  name: string;
+  type: "personal" | "team";
+  ownerUserId: string;
+  workspaceMemberId: string;
+}
+
+export interface MyWorkspacesResponse {
+  workspaces: MyWorkspaceSummary[];
+}
+
 export interface WorkspaceNoteSummary {
   id: string;
   driveId: string;
@@ -811,8 +824,19 @@ export interface TaskSummary {
   updatedAt: string;
 }
 
+export interface TaskDetail extends TaskSummary {
+  descriptionBlocks: unknown[];
+  statusId: string;
+  sourceMessageId: string | null;
+  threadRootMessageId: string | null;
+}
+
 export interface TaskboardTasksResponse {
   tasks: TaskSummary[];
+}
+
+export interface TaskDetailResponse {
+  task: TaskDetail;
 }
 
 export interface ListTaskboardTasksQuery {
@@ -2090,6 +2114,13 @@ export class ColineApiClient {
     );
   }
 
+  async listMyWorkspaces(): Promise<MyWorkspacesResponse> {
+    return this.coreRequest<MyWorkspacesResponse>(
+      "GET",
+      "/api/v1/me/workspaces",
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Core Platform API — Notes
   // ---------------------------------------------------------------------------
@@ -2595,6 +2626,17 @@ export class ColineApiClient {
     );
   }
 
+  async getTaskboardTask(
+    workspaceId: string,
+    taskboardId: string,
+    taskId: string,
+  ): Promise<TaskDetailResponse> {
+    return this.coreRequest<TaskDetailResponse>(
+      "GET",
+      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards/${encodeURIComponent(taskboardId)}/tasks/${encodeURIComponent(taskId)}`,
+    );
+  }
+
   async updateTaskboardTask(
     workspaceId: string,
     taskboardId: string,
@@ -3071,6 +3113,10 @@ export class ColineWorkspace {
     return this.client.listWorkspaceTaskboards(this.workspaceId);
   }
 
+  getTask(taskboardId: string, taskId: string) {
+    return this.client.getTaskboardTask(this.workspaceId, taskboardId, taskId);
+  }
+
   listTasks(taskboardId: string, query?: ListTaskboardTasksQuery) {
     return this.client.listTaskboardTasks(this.workspaceId, taskboardId, query);
   }
@@ -3471,6 +3517,7 @@ export class CalendarEventHandle {
 
 export class TaskboardHandle {
   constructor(private readonly ws: ColineWorkspace, readonly id: string) {}
+  getTask(taskId: string) { return this.ws.getTask(this.id, taskId); }
   listTasks(query?: ListTaskboardTasksQuery) { return this.ws.listTasks(this.id, query); }
   createTask(input: CreateTaskInput) { return this.ws.createTask(this.id, input); }
   task(taskId: string): TaskHandle { return new TaskHandle(this.ws, this.id, taskId); }
@@ -3485,6 +3532,7 @@ export class TaskHandle {
     private readonly taskboardId: string,
     readonly id: string,
   ) {}
+  get() { return this.ws.getTask(this.taskboardId, this.id); }
   update(input: UpdateTaskInput) { return this.ws.updateTask(this.taskboardId, this.id, input); }
   delete() { return this.ws.deleteTask(this.taskboardId, this.id); }
 }

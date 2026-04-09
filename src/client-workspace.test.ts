@@ -41,6 +41,39 @@ function getRequestHeaders(fetchMock: ReturnType<typeof vi.fn>, callIndex: numbe
 }
 
 // ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+describe("Identity API", () => {
+  it("lists my workspaces", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: {
+          workspaces: [
+            {
+              id: "ws_123",
+              slug: "acme",
+              name: "Acme",
+              type: "team",
+              ownerUserId: "user_1",
+              workspaceMemberId: "wm_1",
+            },
+          ],
+        },
+      }),
+    );
+    const client = mockClient(fetchMock);
+
+    const result = await client.listMyWorkspaces();
+
+    expect(result.workspaces).toHaveLength(1);
+    expect(result.workspaces[0]?.slug).toBe("acme");
+    expectUrl(fetchMock, 0, "https://api.coline.app/api/v1/me/workspaces");
+    expectMethod(fetchMock, 0, "GET");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Notes
 // ---------------------------------------------------------------------------
 
@@ -504,6 +537,48 @@ describe("Taskboards & Tasks API", () => {
     );
   });
 
+  it("gets a single task", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: {
+          task: {
+            id: "task_1",
+            taskboardId: "board_1",
+            taskNumber: 42,
+            identifier: "ACME-42",
+            title: "Fix bug",
+            description: "Broken thing",
+            descriptionBlocks: [],
+            statusId: "status_1",
+            status: null,
+            priority: "high",
+            labels: [],
+            dueDate: null,
+            assignees: [],
+            isCompleted: false,
+            completedAt: null,
+            sourceMessageId: null,
+            threadRootMessageId: null,
+            createdByUserId: "user_1",
+            createdAt: "2026-04-01T00:00:00.000Z",
+            updatedAt: "2026-04-01T00:00:00.000Z",
+          },
+        },
+      }),
+    );
+    const client = mockClient(fetchMock);
+
+    const result = await client.getTaskboardTask("ws_123", "board_1", "task_1");
+
+    expect(result.task.id).toBe("task_1");
+    expectMethod(fetchMock, 0, "GET");
+    expectUrl(
+      fetchMock,
+      0,
+      "https://api.coline.app/api/v1/workspaces/ws_123/taskboards/board_1/tasks/task_1",
+    );
+  });
+
   it("batch creates tasks", async () => {
     const fetchMock = vi
       .fn()
@@ -641,6 +716,7 @@ describe("ColineWorkspace fluent API", () => {
       .fn()
       .mockResolvedValueOnce(jsonResponse({ data: { taskboards: [] } }))
       .mockResolvedValueOnce(jsonResponse({ data: { tasks: [] } }))
+      .mockResolvedValueOnce(jsonResponse({ data: { task: { id: "t_1" } } }))
       .mockResolvedValueOnce(jsonResponse({ data: { task: { id: "t_1" } } }));
 
     const ws = mockClient(fetchMock).workspace("ws_123");
@@ -648,8 +724,36 @@ describe("ColineWorkspace fluent API", () => {
     await ws.listTaskboards();
     await ws.listTasks("board_1");
     await ws.createTask("board_1", { title: "Ship it" });
+    await ws.getTask("board_1", "t_1");
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expectUrl(
+      fetchMock,
+      3,
+      "https://api.coline.app/api/v1/workspaces/ws_123/taskboards/board_1/tasks/t_1",
+    );
+  });
+
+  it("supports chainable task handles", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ data: { task: { id: "task_123" } } }))
+      .mockResolvedValueOnce(jsonResponse({ data: { ok: true } }))
+      .mockResolvedValueOnce(jsonResponse({ data: { ok: true } }));
+
+    const ws = mockClient(fetchMock).workspace("ws_123");
+    const task = ws.taskboard("board_123").task("task_123");
+
+    await task.get();
+    await task.update({ title: "Done" });
+    await task.delete();
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
+    expectUrl(
+      fetchMock,
+      0,
+      "https://api.coline.app/api/v1/workspaces/ws_123/taskboards/board_123/tasks/task_123",
+    );
   });
 
   it("delegates search through workspace handle", async () => {

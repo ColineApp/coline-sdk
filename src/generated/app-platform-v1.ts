@@ -424,6 +424,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List my workspaces */
+        get: operations["listMyWorkspaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceSlug}/uploads/initiate": {
         parameters: {
             query?: never;
@@ -473,6 +490,25 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceSlug}/taskboards/{taskboardId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a task from a taskboard */
+        get: operations["getTaskboardTask"];
+        put?: never;
+        post?: never;
+        /** Delete a task from a taskboard */
+        delete: operations["deleteTaskboardTask"];
+        options?: never;
+        head?: never;
+        /** Update a task in a taskboard */
+        patch: operations["updateTaskboardTask"];
         trace?: never;
     };
     "/api/v1/workspaces/{workspaceSlug}/taskboards/{taskboardId}/tasks/batch-create": {
@@ -1208,6 +1244,31 @@ export interface components {
                 tasks: components["schemas"]["TaskSummary"][];
             };
         };
+        UpdateTaskInput: {
+            title?: string;
+            description?: string;
+            statusId?: string;
+            /** @enum {string} */
+            priority?: "none" | "low" | "medium" | "high" | "urgent";
+            /** Format: date-time */
+            dueDate?: string | null;
+            labels?: string[];
+            assigneeUserIds?: string[];
+        };
+        MyWorkspaceSummary: {
+            id: string;
+            slug: string;
+            name: string;
+            /** @enum {string} */
+            type: "personal" | "team";
+            ownerUserId: string;
+            workspaceMemberId: string;
+        };
+        MyWorkspacesResponse: {
+            data: {
+                workspaces: components["schemas"]["MyWorkspaceSummary"][];
+            };
+        };
         TaskSummary: {
             id: string;
             title: string;
@@ -1226,6 +1287,16 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        TaskDetailResponse: {
+            data: {
+                task: components["schemas"]["TaskSummary"] & {
+                    descriptionBlocks: unknown[];
+                    statusId: string;
+                    sourceMessageId: string | null;
+                    threadRootMessageId: string | null;
+                };
+            };
         };
         WebhookEventBase: {
             /** @description Event type discriminator. */
@@ -2340,6 +2411,26 @@ export interface operations {
             };
         };
     };
+    listMyWorkspaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authenticated user's workspaces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
+                };
+            };
+        };
+    };
     initiateUpload: {
         parameters: {
             query?: never;
@@ -2417,6 +2508,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompleteUploadResponse"];
+                };
+            };
+        };
+    };
+    getTaskboardTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceSlug: string;
+                taskboardId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDetailResponse"];
+                };
+            };
+        };
+    };
+    deleteTaskboardTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceSlug: string;
+                taskboardId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+        };
+    };
+    updateTaskboardTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceSlug: string;
+                taskboardId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTaskInput"];
+            };
+        };
+        responses: {
+            /** @description Task updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
                 };
             };
         };

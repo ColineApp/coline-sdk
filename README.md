@@ -159,6 +159,23 @@ await app.createNotification({
 });
 ```
 
+For delegated integrations, the client also supports identity and workspace content helpers:
+
+```ts
+const client = new ColineApiClient({
+  baseUrl: "https://coline.app",
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+  },
+});
+
+const { workspaces } = await client.listMyWorkspaces();
+const ws = client.workspace(workspaces[0]!.slug);
+
+const { task } = await ws.getTask("taskboard_123", "task_456");
+const { event } = await ws.getCalendarEvent("event_123");
+```
+
 ## Webhooks
 
 Verify and handle webhook events with typed payloads:
