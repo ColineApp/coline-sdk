@@ -794,10 +794,16 @@ describe("Uploads API", () => {
         jsonResponse({ data: { uploadId: "up_1", partCount: 2 } }),
       )
       .mockResolvedValueOnce(
-        jsonResponse({ data: { partNumber: 1, etag: "etag_1" } }),
+        jsonResponse({ data: { method: "PUT", partNumber: 1, url: "https://upload.example/1", expiresInSeconds: 900 } }),
       )
       .mockResolvedValueOnce(
-        jsonResponse({ data: { partNumber: 2, etag: "etag_2" } }),
+        new Response(null, { status: 200, headers: { ETag: "etag_1" } }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ data: { method: "PUT", partNumber: 2, url: "https://upload.example/2", expiresInSeconds: 900 } }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200, headers: { ETag: "etag_2" } }),
       )
       .mockResolvedValueOnce(
         jsonResponse({ data: { file: { id: "file_1" } } }),
@@ -821,7 +827,12 @@ describe("Uploads API", () => {
     ]);
 
     expect(result.file.id).toBe("file_1");
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "https://upload.example/1",
+      expect.objectContaining({ method: "PUT" }),
+    );
   });
 
   it("uploads a file in one call via uploadFile helper", async () => {
@@ -831,7 +842,10 @@ describe("Uploads API", () => {
         jsonResponse({ data: { uploadId: "up_1", partCount: 1 } }),
       )
       .mockResolvedValueOnce(
-        jsonResponse({ data: { partNumber: 1, etag: "etag_1" } }),
+        jsonResponse({ data: { method: "PUT", partNumber: 1, url: "https://upload.example/1", expiresInSeconds: 900 } }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200, headers: { ETag: "etag_1" } }),
       )
       .mockResolvedValueOnce(
         jsonResponse({ data: { file: { id: "file_1", name: "photo.jpg" } } }),
@@ -847,7 +861,32 @@ describe("Uploads API", () => {
     });
 
     expect(result.file.id).toBe("file_1");
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("falls back to the proxied upload endpoint when the direct path cannot return an etag", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({ data: { method: "PUT", partNumber: 1, url: "https://upload.example/1", expiresInSeconds: 900 } }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ data: { partNumber: 1, etag: "etag_proxy" } }),
+      );
+
+    const client = mockClient(fetchMock);
+
+    const result = await client.uploadPart("ws_123", "up_1", 1, new Uint8Array(32));
+
+    expect(result).toEqual({ partNumber: 1, etag: "etag_proxy" });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "https://api.coline.app/api/v1/workspaces/ws_123/uploads/part?uploadId=up_1&partNumber=1",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 });
 

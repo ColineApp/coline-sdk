@@ -921,6 +921,13 @@ export interface UploadPartResponse {
   etag: string;
 }
 
+export interface UploadPartUrlResponse {
+  method: "PUT";
+  partNumber: number;
+  url: string;
+  expiresInSeconds: number;
+}
+
 export interface CompletedUploadPart {
   partNumber: number;
   etag: string;
@@ -2644,6 +2651,25 @@ export class ColineApiClient {
   }
 
   /**
+   * Get a short-lived signed URL for uploading a single part directly.
+   */
+  async getUploadPartUrl(
+    workspaceId: string,
+    uploadId: string,
+    partNumber: number,
+  ): Promise<UploadPartUrlResponse> {
+    const qs = new URLSearchParams({
+      uploadId,
+      partNumber: String(partNumber),
+    });
+
+    return this.coreRequest<UploadPartUrlResponse>(
+      "GET",
+      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/part?${qs}`,
+    );
+  }
+
+  /**
    * Upload a single part of a multipart upload.
    */
   async uploadPart(
@@ -2665,12 +2691,56 @@ export class ColineApiClient {
       // Uint8Array — extract the underlying ArrayBuffer slice
       body = new Blob([(data.buffer as ArrayBuffer).slice(data.byteOffset, data.byteOffset + data.byteLength)]);
     }
-    return this.coreRawRequest<UploadPartResponse>(
-      "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/part?${qs}`,
+
+    try {
+      return await this.uploadPartDirect(workspaceId, uploadId, partNumber, body);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw error;
+      }
+
+      return this.coreRawRequest<UploadPartResponse>(
+        "POST",
+        `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/part?${qs}`,
+        body,
+        "application/octet-stream",
+      );
+    }
+  }
+
+  private async uploadPartDirect(
+    workspaceId: string,
+    uploadId: string,
+    partNumber: number,
+    body: Blob,
+  ): Promise<UploadPartResponse> {
+    const signedUrl = await this.getUploadPartUrl(workspaceId, uploadId, partNumber);
+    const response = await this.fetchImpl(signedUrl.url, {
+      method: signedUrl.method,
       body,
-      "application/octet-stream",
-    );
+    });
+
+    if (!response.ok) {
+      throw new ColineApiError({
+        message: `Request failed (${response.status}).`,
+        type: "api",
+        status: response.status,
+      });
+    }
+
+    const etag = response.headers.get("etag") ?? response.headers.get("ETag");
+    if (!etag) {
+      throw new ColineApiError({
+        message: "Direct upload succeeded but no ETag was returned.",
+        type: "api",
+        status: response.status,
+      });
+    }
+
+    return {
+      partNumber: signedUrl.partNumber,
+      etag,
+    };
   }
 
   /**
@@ -3103,6 +3173,10 @@ export class ColineWorkspace {
 
   initiateUpload(input: InitiateUploadInput) {
     return this.client.initiateUpload(this.workspaceId, input);
+  }
+
+  getUploadPartUrl(uploadId: string, partNumber: number) {
+    return this.client.getUploadPartUrl(this.workspaceId, uploadId, partNumber);
   }
 
   uploadPart(uploadId: string, partNumber: number, data: Uint8Array | ArrayBuffer | Blob) {
