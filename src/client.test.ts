@@ -33,6 +33,28 @@ describe("ColineApiClient", () => {
     expect(headers.get("Authorization")).toBe("Bearer test-key");
   });
 
+  it("creates a raw generated app-platform client with oauth access tokens", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      createJsonResponse({
+        data: {
+          apps: [],
+        },
+      }),
+    );
+
+    const client = createAppPlatformClient({
+      baseUrl: "https://api.coline.app",
+      accessToken: "col_at_123",
+      fetch: fetchMock,
+    });
+
+    const result = await client.GET("/api/v1/apps");
+    expect(result.data?.data.apps).toEqual([]);
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer col_at_123");
+  });
+
   it("registers apps and creates new versions through the v1 app publisher routes", async () => {
     const fetchMock = vi
       .fn()
@@ -1116,6 +1138,28 @@ describe("ColineApiClient", () => {
     expect(headers.get("Authorization")).toBe("Bearer test-key");
     expect(headers.get("X-Test")).toBe("base");
     expect(headers.get("X-Request-Source")).toBe("sdk-test");
+  });
+
+  it("supports client cloning with oauth access tokens", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      createJsonResponse({
+        data: {
+          apps: [],
+        },
+      }),
+    );
+
+    const baseClient = new ColineApiClient({
+      baseUrl: "https://api.coline.app",
+      fetch: fetchMock,
+    });
+
+    const client = baseClient.withAccessToken("col_at_123");
+
+    await client.listApps();
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer col_at_123");
   });
 
   it("throws structured api errors", async () => {

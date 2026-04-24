@@ -970,6 +970,23 @@ describe("Auth headers", () => {
     expect(headers.get("Authorization")).toBe("Bearer col_ws_abc_secret123");
   });
 
+  it("sends OAuth access tokens on core API requests", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ data: { notes: [] } }),
+    );
+
+    const client = new ColineApiClient({
+      baseUrl: "https://api.coline.app",
+      accessToken: "col_at_123",
+      fetch: fetchMock,
+    });
+
+    await client.listWorkspaceNotes("ws_123");
+
+    const headers = getRequestHeaders(fetchMock, 0);
+    expect(headers.get("Authorization")).toBe("Bearer col_at_123");
+  });
+
   it("sends custom headers alongside auth", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({ data: { notes: [] } }),

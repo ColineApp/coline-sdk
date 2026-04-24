@@ -12,8 +12,9 @@ function createAuthenticatedFetch(options: ColineApiClientOptions): typeof fetch
       headers.set("Content-Type", "application/json");
     }
 
-    if (options.apiKey && !headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${options.apiKey}`);
+    const bearerCredential = options.apiKey ?? options.accessToken;
+    if (bearerCredential && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${bearerCredential}`);
     }
 
     return (options.fetch ?? fetch)(input, {

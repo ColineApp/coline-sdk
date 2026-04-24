@@ -66,7 +66,10 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
 export interface ColineApiClientOptions {
   baseUrl: string;
+  /** Workspace API key (`col_ws_...`) for workspace-owned server integrations. */
   apiKey?: string;
+  /** OAuth access token (`col_at_...`) for user-authorized API calls. */
+  accessToken?: string;
   fetch?: typeof fetch;
   headers?: HeadersInit;
   /** Maximum number of automatic retries on 429 / 5xx responses (default: 0). */
@@ -1095,6 +1098,7 @@ function toRegisterAppInput(payload: ColineAppRegistrationPayload) {
 export class ColineApiClient {
   private readonly baseUrl: string;
   private readonly apiKey: string | undefined;
+  private readonly accessToken: string | undefined;
   private readonly fetchImpl: typeof fetch;
   private readonly defaultHeaders: HeadersInit | undefined;
   private readonly appPlatformClient: AppPlatformClient;
@@ -1104,6 +1108,7 @@ export class ColineApiClient {
   constructor(options: ColineApiClientOptions) {
     this.baseUrl = options.baseUrl;
     this.apiKey = options.apiKey;
+    this.accessToken = options.accessToken;
     this.fetchImpl = options.fetch ?? fetch;
     this.defaultHeaders = options.headers;
     this.maxRetries = options.maxRetries ?? 0;
@@ -1156,6 +1161,22 @@ export class ColineApiClient {
     return new ColineApiClient(options);
   }
 
+  withAccessToken(accessToken: string): ColineApiClient {
+    const options: ColineApiClientOptions = {
+      baseUrl: this.baseUrl,
+      accessToken,
+      fetch: this.fetchImpl,
+      maxRetries: this.maxRetries,
+      debug: this.debug,
+    };
+
+    if (this.defaultHeaders !== undefined) {
+      options.headers = this.defaultHeaders;
+    }
+
+    return new ColineApiClient(options);
+  }
+
   withHeaders(headers: HeadersInit): ColineApiClient {
     const mergedHeaders = new Headers(this.defaultHeaders);
     new Headers(headers).forEach((value, key) => mergedHeaders.set(key, value));
@@ -1171,8 +1192,15 @@ export class ColineApiClient {
     if (this.apiKey !== undefined) {
       options.apiKey = this.apiKey;
     }
+    if (this.accessToken !== undefined) {
+      options.accessToken = this.accessToken;
+    }
 
     return new ColineApiClient(options);
+  }
+
+  private getBearerCredential(): string | undefined {
+    return this.apiKey ?? this.accessToken;
   }
 
   buildLoginWithColineAuthorizeUrl(input: {
@@ -1812,8 +1840,9 @@ export class ColineApiClient {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
     };
-    if (this.apiKey) {
-      headers["Authorization"] = `Bearer ${this.apiKey}`;
+    const bearerCredential = this.getBearerCredential();
+    if (bearerCredential) {
+      headers["Authorization"] = `Bearer ${bearerCredential}`;
     }
     if (this.defaultHeaders) {
       new Headers(this.defaultHeaders).forEach((v, k) => {
@@ -1946,8 +1975,9 @@ export class ColineApiClient {
   ): Promise<T> {
     const url = joinUrl(this.baseUrl, path);
     const headers: Record<string, string> = {};
-    if (this.apiKey) {
-      headers["Authorization"] = `Bearer ${this.apiKey}`;
+    const bearerCredential = this.getBearerCredential();
+    if (bearerCredential) {
+      headers["Authorization"] = `Bearer ${bearerCredential}`;
     }
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";
@@ -2044,8 +2074,9 @@ export class ColineApiClient {
   ): Promise<T> {
     const url = joinUrl(this.baseUrl, path);
     const headers: Record<string, string> = {};
-    if (this.apiKey) {
-      headers["Authorization"] = `Bearer ${this.apiKey}`;
+    const bearerCredential = this.getBearerCredential();
+    if (bearerCredential) {
+      headers["Authorization"] = `Bearer ${bearerCredential}`;
     }
     if (contentType) {
       headers["Content-Type"] = contentType;
