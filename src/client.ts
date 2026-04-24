@@ -994,7 +994,7 @@ export interface Page<T> {
  *
  * @example
  * ```ts
- * const ws = coline.workspace("ws_123");
+ * const ws = coline.workspace("ws_abc123");
  * for await (const note of ws.paginateNotes({ limit: 50 })) {
  *   console.log(note.title);
  * }
@@ -2120,11 +2120,11 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceMembers(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
   ): Promise<WorkspaceMembersResponse> {
     return this.coreRequest<WorkspaceMembersResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/members`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/members`,
     );
   }
 
@@ -2133,7 +2133,7 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceNotes(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     query?: ListWorkspaceNotesQuery,
   ): Promise<WorkspaceNotesListResponse> {
     const params = new URLSearchParams();
@@ -2143,17 +2143,17 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<WorkspaceNotesListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/notes${qs ? `?${qs}` : ""}`,
     );
   }
 
   async createWorkspaceNote(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: CreateWorkspaceNoteInput,
   ): Promise<WorkspaceNoteResponse> {
     return this.coreRequest<WorkspaceNoteResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/notes`,
       {
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.body !== undefined ? { body: input.body } : {}),
@@ -2165,34 +2165,34 @@ export class ColineApiClient {
   }
 
   async getWorkspaceNote(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     noteId: string,
   ): Promise<WorkspaceNoteDetailResponse> {
     return this.coreRequest<WorkspaceNoteDetailResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes/${encodeURIComponent(noteId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/notes/${encodeURIComponent(noteId)}`,
     );
   }
 
   async updateWorkspaceNote(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     noteId: string,
     input: UpdateWorkspaceNoteInput,
   ): Promise<WorkspaceNoteResponse> {
     return this.coreRequest<WorkspaceNoteResponse>(
       "PUT",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes/${encodeURIComponent(noteId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/notes/${encodeURIComponent(noteId)}`,
       input,
     );
   }
 
   async deleteWorkspaceNote(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     noteId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes/${encodeURIComponent(noteId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/notes/${encodeURIComponent(noteId)}`,
     );
   }
 
@@ -2201,7 +2201,7 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceDocs(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     query?: ListWorkspaceDocsQuery,
   ): Promise<WorkspaceDocsListResponse> {
     const params = new URLSearchParams();
@@ -2211,17 +2211,17 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<WorkspaceDocsListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/docs${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/docs${qs ? `?${qs}` : ""}`,
     );
   }
 
   async createWorkspaceDoc(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: CreateWorkspaceDocInput,
   ): Promise<WorkspaceDocResponse> {
     return this.coreRequest<WorkspaceDocResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/docs`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/docs`,
       {
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.content !== undefined ? { content: input.content } : {}),
@@ -2233,34 +2233,34 @@ export class ColineApiClient {
   }
 
   async getWorkspaceDoc(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     docId: string,
   ): Promise<WorkspaceDocDetailResponse> {
     return this.coreRequest<WorkspaceDocDetailResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/docs/${encodeURIComponent(docId)}`,
     );
   }
 
   async updateWorkspaceDoc(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     docId: string,
     input: UpdateWorkspaceDocInput,
   ): Promise<WorkspaceDocDetailResponse> {
     return this.coreRequest<WorkspaceDocDetailResponse>(
       "PATCH",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/docs/${encodeURIComponent(docId)}`,
       input,
     );
   }
 
   async deleteWorkspaceDoc(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     docId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/docs/${encodeURIComponent(docId)}`,
     );
   }
 
@@ -2269,11 +2269,11 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceDrives(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
   ): Promise<WorkspaceDrivesListResponse> {
     return this.coreRequest<WorkspaceDrivesListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/drives`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/drives`,
     );
   }
 
@@ -2282,7 +2282,7 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listDriveFiles(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     driveId: string,
     query?: ListDriveFilesQuery,
   ): Promise<DriveFilesListResponse> {
@@ -2295,39 +2295,39 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<DriveFilesListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/drives/${encodeURIComponent(driveId)}/files${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/drives/${encodeURIComponent(driveId)}/files${qs ? `?${qs}` : ""}`,
     );
   }
 
   async getFile(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     fileId: string,
   ): Promise<FileDetailResponse> {
     return this.coreRequest<FileDetailResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/files/${encodeURIComponent(fileId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/files/${encodeURIComponent(fileId)}`,
     );
   }
 
   async updateFile(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     fileId: string,
     input: UpdateFileInput,
   ): Promise<FileDetailResponse> {
     return this.coreRequest<FileDetailResponse>(
       "PATCH",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/files/${encodeURIComponent(fileId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/files/${encodeURIComponent(fileId)}`,
       input,
     );
   }
 
   async deleteFile(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     fileId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/files/${encodeURIComponent(fileId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/files/${encodeURIComponent(fileId)}`,
     );
   }
 
@@ -2336,16 +2336,16 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceChannels(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
   ): Promise<ChannelListResponse> {
     return this.coreRequest<ChannelListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/channels`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/channels`,
     );
   }
 
   async listChannelMessages(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     channelId: string,
     options?: { limit?: number; cursor?: string },
   ): Promise<MessagesListResponse> {
@@ -2355,7 +2355,7 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<MessagesListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/channels/${encodeURIComponent(channelId)}/messages${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/channels/${encodeURIComponent(channelId)}/messages${qs ? `?${qs}` : ""}`,
     );
   }
 
@@ -2364,16 +2364,16 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceDms(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
   ): Promise<DmListResponse> {
     return this.coreRequest<DmListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/dms`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/dms`,
     );
   }
 
   async listDmMessages(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     dmId: string,
     options?: { limit?: number; cursor?: string },
   ): Promise<MessagesListResponse> {
@@ -2383,30 +2383,30 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<MessagesListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/dms/${encodeURIComponent(dmId)}/messages${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/dms/${encodeURIComponent(dmId)}/messages${qs ? `?${qs}` : ""}`,
     );
   }
 
   async sendDmMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     dmId: string,
     input: SendMessageInput,
   ): Promise<SendMessageResponse> {
     return this.coreRequest<SendMessageResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/dms/${encodeURIComponent(dmId)}/messages`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/dms/${encodeURIComponent(dmId)}/messages`,
       input,
     );
   }
 
   async sendChannelMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     channelId: string,
     input: SendMessageInput,
   ): Promise<SendMessageResponse> {
     return this.coreRequest<SendMessageResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/channels/${encodeURIComponent(channelId)}/messages`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/channels/${encodeURIComponent(channelId)}/messages`,
       input,
     );
   }
@@ -2416,98 +2416,98 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async getMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
   ): Promise<MessageDetailResponse> {
     return this.coreRequest<MessageDetailResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}`,
     );
   }
 
   async editMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
     input: EditMessageInput,
   ): Promise<MessageDetailResponse> {
     return this.coreRequest<MessageDetailResponse>(
       "PATCH",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}`,
       input,
     );
   }
 
   async deleteMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}`,
     );
   }
 
   async getThread(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
   ): Promise<ThreadResponse> {
     return this.coreRequest<ThreadResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/thread`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/thread`,
     );
   }
 
   async replyToThread(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
     input: ThreadReplyInput,
   ): Promise<SendMessageResponse> {
     return this.coreRequest<SendMessageResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/thread`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/thread`,
       input,
     );
   }
 
   async addReaction(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
     emoji: string,
   ): Promise<ReactionResponse> {
     return this.coreRequest<ReactionResponse>(
       "PUT",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/reactions/${encodeURIComponent(emoji)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/reactions/${encodeURIComponent(emoji)}`,
     );
   }
 
   async removeReaction(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
     emoji: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/reactions/${encodeURIComponent(emoji)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/reactions/${encodeURIComponent(emoji)}`,
     );
   }
 
   async pinMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
   ): Promise<PinResponse> {
     return this.coreRequest<PinResponse>(
       "PUT",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/pin`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/pin`,
     );
   }
 
   async unpinMessage(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     messageId: string,
   ): Promise<PinResponse> {
     return this.coreRequest<PinResponse>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/messages/${encodeURIComponent(messageId)}/pin`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/messages/${encodeURIComponent(messageId)}/pin`,
     );
   }
 
@@ -2516,7 +2516,7 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listCalendarEvents(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     range: { start: string; end: string },
   ): Promise<CalendarEventsListResponse> {
     const params = new URLSearchParams({
@@ -2525,50 +2525,50 @@ export class ColineApiClient {
     });
     return this.coreRequest<CalendarEventsListResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/calendar/events?${params}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/calendar/events?${params}`,
     );
   }
 
   async createCalendarEvent(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: CreateCalendarEventInput,
   ): Promise<CalendarEventDetailResponse> {
     return this.coreRequest<CalendarEventDetailResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/calendar/events`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/calendar/events`,
       input,
     );
   }
 
   async getCalendarEvent(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     eventId: string,
   ): Promise<CalendarEventDetailResponse> {
     return this.coreRequest<CalendarEventDetailResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/calendar/events/${encodeURIComponent(eventId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/calendar/events/${encodeURIComponent(eventId)}`,
     );
   }
 
   async updateCalendarEvent(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     eventId: string,
     input: UpdateCalendarEventInput,
   ): Promise<CalendarEventDetailResponse> {
     return this.coreRequest<CalendarEventDetailResponse>(
       "PATCH",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/calendar/events/${encodeURIComponent(eventId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/calendar/events/${encodeURIComponent(eventId)}`,
       input,
     );
   }
 
   async deleteCalendarEvent(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     eventId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/calendar/events/${encodeURIComponent(eventId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/calendar/events/${encodeURIComponent(eventId)}`,
     );
   }
 
@@ -2577,12 +2577,12 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async searchWorkspace(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: WorkspaceSearchInput,
   ): Promise<WorkspaceSearchResponse> {
     return this.coreRequest<WorkspaceSearchResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/search`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/search`,
       input,
     );
   }
@@ -2592,11 +2592,11 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listWorkspaceTaskboards(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
   ): Promise<WorkspaceTaskboardsResponse> {
     return this.coreRequest<WorkspaceTaskboardsResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/taskboards`,
     );
   }
 
@@ -2605,7 +2605,7 @@ export class ColineApiClient {
   // ---------------------------------------------------------------------------
 
   async listTaskboardTasks(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     query?: ListTaskboardTasksQuery,
   ): Promise<TaskboardTasksResponse> {
@@ -2617,43 +2617,43 @@ export class ColineApiClient {
     const qs = params.toString();
     return this.coreRequest<TaskboardTasksResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards/${encodeURIComponent(taskboardId)}/tasks${qs ? `?${qs}` : ""}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/taskboards/${encodeURIComponent(taskboardId)}/tasks${qs ? `?${qs}` : ""}`,
     );
   }
 
   async createTaskboardTask(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     input: CreateTaskInput,
   ): Promise<CreateTaskResponse> {
     return this.coreRequest<CreateTaskResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards/${encodeURIComponent(taskboardId)}/tasks`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/taskboards/${encodeURIComponent(taskboardId)}/tasks`,
       input,
     );
   }
 
   async updateTaskboardTask(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     taskId: string,
     input: UpdateTaskInput,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "PATCH",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards/${encodeURIComponent(taskboardId)}/tasks/${encodeURIComponent(taskId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/taskboards/${encodeURIComponent(taskboardId)}/tasks/${encodeURIComponent(taskId)}`,
       input,
     );
   }
 
   async deleteTaskboardTask(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     taskId: string,
   ): Promise<{ ok: true }> {
     return this.coreRequest<{ ok: true }>(
       "DELETE",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/taskboards/${encodeURIComponent(taskboardId)}/tasks/${encodeURIComponent(taskId)}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/taskboards/${encodeURIComponent(taskboardId)}/tasks/${encodeURIComponent(taskId)}`,
     );
   }
 
@@ -2665,12 +2665,12 @@ export class ColineApiClient {
    * Start a multipart upload. Returns an `uploadId` and the expected `partCount`.
    */
   async initiateUpload(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: InitiateUploadInput,
   ): Promise<InitiateUploadResponse> {
     return this.coreRequest<InitiateUploadResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/initiate`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/uploads/initiate`,
       {
         fileName: input.fileName,
         mimeType: input.mimeType,
@@ -2685,7 +2685,7 @@ export class ColineApiClient {
    * Get a short-lived signed URL for uploading a single part directly.
    */
   async getUploadPartUrl(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     uploadId: string,
     partNumber: number,
   ): Promise<UploadPartUrlResponse> {
@@ -2696,7 +2696,7 @@ export class ColineApiClient {
 
     return this.coreRequest<UploadPartUrlResponse>(
       "GET",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/part?${qs}`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/uploads/part?${qs}`,
     );
   }
 
@@ -2704,7 +2704,7 @@ export class ColineApiClient {
    * Upload a single part of a multipart upload.
    */
   async uploadPart(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     uploadId: string,
     partNumber: number,
     data: Uint8Array | ArrayBuffer | Blob,
@@ -2724,7 +2724,7 @@ export class ColineApiClient {
     }
 
     try {
-      return await this.uploadPartDirect(workspaceId, uploadId, partNumber, body);
+      return await this.uploadPartDirect(workspaceIdOrSlug, uploadId, partNumber, body);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         throw error;
@@ -2732,7 +2732,7 @@ export class ColineApiClient {
 
       return this.coreRawRequest<UploadPartResponse>(
         "POST",
-        `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/part?${qs}`,
+        `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/uploads/part?${qs}`,
         body,
         "application/octet-stream",
       );
@@ -2740,12 +2740,12 @@ export class ColineApiClient {
   }
 
   private async uploadPartDirect(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     uploadId: string,
     partNumber: number,
     body: Blob,
   ): Promise<UploadPartResponse> {
-    const signedUrl = await this.getUploadPartUrl(workspaceId, uploadId, partNumber);
+    const signedUrl = await this.getUploadPartUrl(workspaceIdOrSlug, uploadId, partNumber);
     const response = await this.fetchImpl(signedUrl.url, {
       method: signedUrl.method,
       body,
@@ -2778,13 +2778,13 @@ export class ColineApiClient {
    * Finalize a multipart upload and create the file in the workspace drive.
    */
   async completeUpload(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     uploadId: string,
     parts: CompletedUploadPart[],
   ): Promise<CompleteUploadResponse> {
     return this.coreRequest<CompleteUploadResponse>(
       "POST",
-      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/uploads/complete`,
+      `/api/v1/workspaces/${encodeURIComponent(workspaceIdOrSlug)}/uploads/complete`,
       { uploadId, parts },
     );
   }
@@ -2805,7 +2805,7 @@ export class ColineApiClient {
    * ```
    */
   async uploadFile(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     input: UploadFileInput,
   ): Promise<CompleteUploadResponse> {
     const bytes =
@@ -2824,7 +2824,7 @@ export class ColineApiClient {
     if (input.parentId !== undefined) {
       initInput.parentId = input.parentId;
     }
-    const { uploadId, partCount } = await this.initiateUpload(workspaceId, initInput);
+    const { uploadId, partCount } = await this.initiateUpload(workspaceIdOrSlug, initInput);
 
     const partSize = Math.ceil(bytes.byteLength / partCount);
     const completedParts: CompletedUploadPart[] = [];
@@ -2833,11 +2833,11 @@ export class ColineApiClient {
       const start = i * partSize;
       const end = Math.min(start + partSize, bytes.byteLength);
       const chunk = bytes.slice(start, end);
-      const part = await this.uploadPart(workspaceId, uploadId, i + 1, chunk);
+      const part = await this.uploadPart(workspaceIdOrSlug, uploadId, i + 1, chunk);
       completedParts.push({ partNumber: part.partNumber, etag: part.etag });
     }
 
-    return this.completeUpload(workspaceId, uploadId, completedParts);
+    return this.completeUpload(workspaceIdOrSlug, uploadId, completedParts);
   }
 
   // ---------------------------------------------------------------------------
@@ -2857,13 +2857,13 @@ export class ColineApiClient {
    * ```
    */
   async batchCreateTasks(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     tasks: CreateTaskInput[],
   ): Promise<BatchResultEntry<CreateTaskResponse>[]> {
     const settled = await Promise.allSettled(
       tasks.map((task) =>
-        this.createTaskboardTask(workspaceId, taskboardId, task),
+        this.createTaskboardTask(workspaceIdOrSlug, taskboardId, task),
       ),
     );
     return settled.map((r) =>
@@ -2877,13 +2877,13 @@ export class ColineApiClient {
    * Update multiple tasks concurrently.
    */
   async batchUpdateTasks(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     updates: BatchUpdateTaskEntry[],
   ): Promise<BatchResultEntry<{ ok: true }>[]> {
     const settled = await Promise.allSettled(
       updates.map(({ taskId, ...input }) =>
-        this.updateTaskboardTask(workspaceId, taskboardId, taskId, input),
+        this.updateTaskboardTask(workspaceIdOrSlug, taskboardId, taskId, input),
       ),
     );
     return settled.map((r) =>
@@ -2897,13 +2897,13 @@ export class ColineApiClient {
    * Delete multiple tasks concurrently.
    */
   async batchDeleteTasks(
-    workspaceId: string,
+    workspaceIdOrSlug: string,
     taskboardId: string,
     taskIds: string[],
   ): Promise<BatchResultEntry<{ ok: true }>[]> {
     const settled = await Promise.allSettled(
       taskIds.map((taskId) =>
-        this.deleteTaskboardTask(workspaceId, taskboardId, taskId),
+        this.deleteTaskboardTask(workspaceIdOrSlug, taskboardId, taskId),
       ),
     );
     return settled.map((r) =>
@@ -2932,7 +2932,7 @@ export class ColineApiClient {
   }
 
   /**
-   * Returns a workspace-scoped client that drops the `workspaceId` first
+   * Returns a workspace-scoped client that drops the `workspaceIdOrSlug` first
    * argument from every workspace method.
    *
    * @example
@@ -2945,17 +2945,17 @@ export class ColineApiClient {
    * }
    * ```
    */
-  workspace(workspaceId: string): ColineWorkspace {
-    return new ColineWorkspace(this, workspaceId);
+  workspace(workspaceIdOrSlug: string): ColineWorkspace {
+    return new ColineWorkspace(this, workspaceIdOrSlug);
   }
 }
 
 // ---------------------------------------------------------------------------
-// Workspace-scoped client — removes workspaceId boilerplate
+// Workspace-scoped client — removes workspace ID/slug boilerplate
 // ---------------------------------------------------------------------------
 
 /**
- * A convenience wrapper around `ColineApiClient` that binds a workspace ID
+ * A convenience wrapper around `ColineApiClient` that binds a workspace ID or slug
  * so you don't have to pass it to every call.
  *
  * Get one via `client.workspace("ws_abc123")`.
@@ -2963,45 +2963,45 @@ export class ColineApiClient {
 export class ColineWorkspace {
   constructor(
     private readonly client: ColineApiClient,
-    readonly workspaceId: string,
+    readonly workspaceIdOrSlug: string,
   ) {}
 
   // -- Installed Apps & App Runtime -----------------------------------------
 
   listApps() {
-    return this.client.listWorkspaceApps(this.workspaceId);
+    return this.client.listWorkspaceApps(this.workspaceIdOrSlug);
   }
 
   installApp(input: InstallWorkspaceAppInput) {
-    return this.client.installWorkspaceApp(this.workspaceId, input);
+    return this.client.installWorkspaceApp(this.workspaceIdOrSlug, input);
   }
 
   // -- Members ---------------------------------------------------------------
 
   listMembers() {
-    return this.client.listWorkspaceMembers(this.workspaceId);
+    return this.client.listWorkspaceMembers(this.workspaceIdOrSlug);
   }
 
   // -- Notes -----------------------------------------------------------------
 
   listNotes(query?: ListWorkspaceNotesQuery) {
-    return this.client.listWorkspaceNotes(this.workspaceId, query);
+    return this.client.listWorkspaceNotes(this.workspaceIdOrSlug, query);
   }
 
   createNote(input: CreateWorkspaceNoteInput) {
-    return this.client.createWorkspaceNote(this.workspaceId, input);
+    return this.client.createWorkspaceNote(this.workspaceIdOrSlug, input);
   }
 
   getNote(noteId: string) {
-    return this.client.getWorkspaceNote(this.workspaceId, noteId);
+    return this.client.getWorkspaceNote(this.workspaceIdOrSlug, noteId);
   }
 
   updateNote(noteId: string, input: UpdateWorkspaceNoteInput) {
-    return this.client.updateWorkspaceNote(this.workspaceId, noteId, input);
+    return this.client.updateWorkspaceNote(this.workspaceIdOrSlug, noteId, input);
   }
 
   deleteNote(noteId: string) {
-    return this.client.deleteWorkspaceNote(this.workspaceId, noteId);
+    return this.client.deleteWorkspaceNote(this.workspaceIdOrSlug, noteId);
   }
 
   /** Async generator that auto-paginates through all notes. */
@@ -3019,23 +3019,23 @@ export class ColineWorkspace {
   // -- Docs ------------------------------------------------------------------
 
   listDocs(query?: ListWorkspaceDocsQuery) {
-    return this.client.listWorkspaceDocs(this.workspaceId, query);
+    return this.client.listWorkspaceDocs(this.workspaceIdOrSlug, query);
   }
 
   createDoc(input: CreateWorkspaceDocInput) {
-    return this.client.createWorkspaceDoc(this.workspaceId, input);
+    return this.client.createWorkspaceDoc(this.workspaceIdOrSlug, input);
   }
 
   getDoc(docId: string) {
-    return this.client.getWorkspaceDoc(this.workspaceId, docId);
+    return this.client.getWorkspaceDoc(this.workspaceIdOrSlug, docId);
   }
 
   updateDoc(docId: string, input: UpdateWorkspaceDocInput) {
-    return this.client.updateWorkspaceDoc(this.workspaceId, docId, input);
+    return this.client.updateWorkspaceDoc(this.workspaceIdOrSlug, docId, input);
   }
 
   deleteDoc(docId: string) {
-    return this.client.deleteWorkspaceDoc(this.workspaceId, docId);
+    return this.client.deleteWorkspaceDoc(this.workspaceIdOrSlug, docId);
   }
 
   /** Async generator that auto-paginates through all docs. */
@@ -3053,169 +3053,169 @@ export class ColineWorkspace {
   // -- Drives & Files --------------------------------------------------------
 
   listDrives() {
-    return this.client.listWorkspaceDrives(this.workspaceId);
+    return this.client.listWorkspaceDrives(this.workspaceIdOrSlug);
   }
 
   listDriveFiles(driveId: string, query?: ListDriveFilesQuery) {
-    return this.client.listDriveFiles(this.workspaceId, driveId, query);
+    return this.client.listDriveFiles(this.workspaceIdOrSlug, driveId, query);
   }
 
   getFile(fileId: string) {
-    return this.client.getFile(this.workspaceId, fileId);
+    return this.client.getFile(this.workspaceIdOrSlug, fileId);
   }
 
   updateFile(fileId: string, input: UpdateFileInput) {
-    return this.client.updateFile(this.workspaceId, fileId, input);
+    return this.client.updateFile(this.workspaceIdOrSlug, fileId, input);
   }
 
   deleteFile(fileId: string) {
-    return this.client.deleteFile(this.workspaceId, fileId);
+    return this.client.deleteFile(this.workspaceIdOrSlug, fileId);
   }
 
   // -- Channels --------------------------------------------------------------
 
   listChannels() {
-    return this.client.listWorkspaceChannels(this.workspaceId);
+    return this.client.listWorkspaceChannels(this.workspaceIdOrSlug);
   }
 
   listChannelMessages(channelId: string, query?: { cursor?: string; limit?: number }) {
-    return this.client.listChannelMessages(this.workspaceId, channelId, query);
+    return this.client.listChannelMessages(this.workspaceIdOrSlug, channelId, query);
   }
 
   sendChannelMessage(channelId: string, input: SendMessageInput) {
-    return this.client.sendChannelMessage(this.workspaceId, channelId, input);
+    return this.client.sendChannelMessage(this.workspaceIdOrSlug, channelId, input);
   }
 
   // -- Direct Messages -------------------------------------------------------
 
   listDms() {
-    return this.client.listWorkspaceDms(this.workspaceId);
+    return this.client.listWorkspaceDms(this.workspaceIdOrSlug);
   }
 
   listDmMessages(dmId: string, query?: { cursor?: string; limit?: number }) {
-    return this.client.listDmMessages(this.workspaceId, dmId, query);
+    return this.client.listDmMessages(this.workspaceIdOrSlug, dmId, query);
   }
 
   sendDmMessage(dmId: string, input: SendMessageInput) {
-    return this.client.sendDmMessage(this.workspaceId, dmId, input);
+    return this.client.sendDmMessage(this.workspaceIdOrSlug, dmId, input);
   }
 
   // -- Messages --------------------------------------------------------------
 
   getMessage(messageId: string) {
-    return this.client.getMessage(this.workspaceId, messageId);
+    return this.client.getMessage(this.workspaceIdOrSlug, messageId);
   }
 
   editMessage(messageId: string, input: EditMessageInput) {
-    return this.client.editMessage(this.workspaceId, messageId, input);
+    return this.client.editMessage(this.workspaceIdOrSlug, messageId, input);
   }
 
   deleteMessage(messageId: string) {
-    return this.client.deleteMessage(this.workspaceId, messageId);
+    return this.client.deleteMessage(this.workspaceIdOrSlug, messageId);
   }
 
   getThread(messageId: string) {
-    return this.client.getThread(this.workspaceId, messageId);
+    return this.client.getThread(this.workspaceIdOrSlug, messageId);
   }
 
   replyToThread(messageId: string, input: ThreadReplyInput) {
-    return this.client.replyToThread(this.workspaceId, messageId, input);
+    return this.client.replyToThread(this.workspaceIdOrSlug, messageId, input);
   }
 
   addReaction(messageId: string, emoji: string) {
-    return this.client.addReaction(this.workspaceId, messageId, emoji);
+    return this.client.addReaction(this.workspaceIdOrSlug, messageId, emoji);
   }
 
   removeReaction(messageId: string, emoji: string) {
-    return this.client.removeReaction(this.workspaceId, messageId, emoji);
+    return this.client.removeReaction(this.workspaceIdOrSlug, messageId, emoji);
   }
 
   pinMessage(messageId: string) {
-    return this.client.pinMessage(this.workspaceId, messageId);
+    return this.client.pinMessage(this.workspaceIdOrSlug, messageId);
   }
 
   unpinMessage(messageId: string) {
-    return this.client.unpinMessage(this.workspaceId, messageId);
+    return this.client.unpinMessage(this.workspaceIdOrSlug, messageId);
   }
 
   // -- Calendar Events -------------------------------------------------------
 
   listCalendarEvents(range: { start: string; end: string }) {
-    return this.client.listCalendarEvents(this.workspaceId, range);
+    return this.client.listCalendarEvents(this.workspaceIdOrSlug, range);
   }
 
   createCalendarEvent(input: CreateCalendarEventInput) {
-    return this.client.createCalendarEvent(this.workspaceId, input);
+    return this.client.createCalendarEvent(this.workspaceIdOrSlug, input);
   }
 
   getCalendarEvent(eventId: string) {
-    return this.client.getCalendarEvent(this.workspaceId, eventId);
+    return this.client.getCalendarEvent(this.workspaceIdOrSlug, eventId);
   }
 
   updateCalendarEvent(eventId: string, input: UpdateCalendarEventInput) {
-    return this.client.updateCalendarEvent(this.workspaceId, eventId, input);
+    return this.client.updateCalendarEvent(this.workspaceIdOrSlug, eventId, input);
   }
 
   deleteCalendarEvent(eventId: string) {
-    return this.client.deleteCalendarEvent(this.workspaceId, eventId);
+    return this.client.deleteCalendarEvent(this.workspaceIdOrSlug, eventId);
   }
 
   // -- Search ----------------------------------------------------------------
 
   search(input: WorkspaceSearchInput) {
-    return this.client.searchWorkspace(this.workspaceId, input);
+    return this.client.searchWorkspace(this.workspaceIdOrSlug, input);
   }
 
   // -- Taskboards & Tasks ----------------------------------------------------
 
   listTaskboards() {
-    return this.client.listWorkspaceTaskboards(this.workspaceId);
+    return this.client.listWorkspaceTaskboards(this.workspaceIdOrSlug);
   }
 
   listTasks(taskboardId: string, query?: ListTaskboardTasksQuery) {
-    return this.client.listTaskboardTasks(this.workspaceId, taskboardId, query);
+    return this.client.listTaskboardTasks(this.workspaceIdOrSlug, taskboardId, query);
   }
 
   createTask(taskboardId: string, input: CreateTaskInput) {
-    return this.client.createTaskboardTask(this.workspaceId, taskboardId, input);
+    return this.client.createTaskboardTask(this.workspaceIdOrSlug, taskboardId, input);
   }
 
   updateTask(taskboardId: string, taskId: string, input: UpdateTaskInput) {
-    return this.client.updateTaskboardTask(this.workspaceId, taskboardId, taskId, input);
+    return this.client.updateTaskboardTask(this.workspaceIdOrSlug, taskboardId, taskId, input);
   }
 
   deleteTask(taskboardId: string, taskId: string) {
-    return this.client.deleteTaskboardTask(this.workspaceId, taskboardId, taskId);
+    return this.client.deleteTaskboardTask(this.workspaceIdOrSlug, taskboardId, taskId);
   }
 
   batchCreateTasks(taskboardId: string, tasks: CreateTaskInput[]) {
-    return this.client.batchCreateTasks(this.workspaceId, taskboardId, tasks);
+    return this.client.batchCreateTasks(this.workspaceIdOrSlug, taskboardId, tasks);
   }
 
   batchUpdateTasks(taskboardId: string, updates: BatchUpdateTaskEntry[]) {
-    return this.client.batchUpdateTasks(this.workspaceId, taskboardId, updates);
+    return this.client.batchUpdateTasks(this.workspaceIdOrSlug, taskboardId, updates);
   }
 
   batchDeleteTasks(taskboardId: string, taskIds: string[]) {
-    return this.client.batchDeleteTasks(this.workspaceId, taskboardId, taskIds);
+    return this.client.batchDeleteTasks(this.workspaceIdOrSlug, taskboardId, taskIds);
   }
 
   // -- File Uploads ----------------------------------------------------------
 
   initiateUpload(input: InitiateUploadInput) {
-    return this.client.initiateUpload(this.workspaceId, input);
+    return this.client.initiateUpload(this.workspaceIdOrSlug, input);
   }
 
   getUploadPartUrl(uploadId: string, partNumber: number) {
-    return this.client.getUploadPartUrl(this.workspaceId, uploadId, partNumber);
+    return this.client.getUploadPartUrl(this.workspaceIdOrSlug, uploadId, partNumber);
   }
 
   uploadPart(uploadId: string, partNumber: number, data: Uint8Array | ArrayBuffer | Blob) {
-    return this.client.uploadPart(this.workspaceId, uploadId, partNumber, data);
+    return this.client.uploadPart(this.workspaceIdOrSlug, uploadId, partNumber, data);
   }
 
   completeUpload(uploadId: string, parts: CompletedUploadPart[]) {
-    return this.client.completeUpload(this.workspaceId, uploadId, parts);
+    return this.client.completeUpload(this.workspaceIdOrSlug, uploadId, parts);
   }
 
   /**
@@ -3234,7 +3234,7 @@ export class ColineWorkspace {
    * ```
    */
   uploadFile(input: UploadFileInput) {
-    return this.client.uploadFile(this.workspaceId, input);
+    return this.client.uploadFile(this.workspaceIdOrSlug, input);
   }
 
   // -- Tab AI ----------------------------------------------------------------
@@ -3368,7 +3368,7 @@ export class ColineWorkspace {
    * ```
    */
   app(appKey: string): WorkspaceAppHandle {
-    return new WorkspaceAppHandle(this.client, this.workspaceId, appKey);
+    return new WorkspaceAppHandle(this.client, this.workspaceIdOrSlug, appKey);
   }
 }
 
@@ -3398,114 +3398,114 @@ export class PublishedAppHandle {
 export class WorkspaceAppHandle {
   constructor(
     private readonly client: ColineApiClient,
-    readonly workspaceId: string,
+    readonly workspaceIdOrSlug: string,
     readonly key: string,
   ) {}
 
   get() {
-    return this.client.getWorkspaceInstalledApp(this.workspaceId, this.key);
+    return this.client.getWorkspaceInstalledApp(this.workspaceIdOrSlug, this.key);
   }
 
   getPermissions() {
-    return this.client.getWorkspaceAppPermissions(this.workspaceId, this.key);
+    return this.client.getWorkspaceAppPermissions(this.workspaceIdOrSlug, this.key);
   }
 
   updatePermissions(input: UpdateWorkspaceAppPermissionsInput) {
-    return this.client.updateWorkspaceAppPermissions(this.workspaceId, this.key, input);
+    return this.client.updateWorkspaceAppPermissions(this.workspaceIdOrSlug, this.key, input);
   }
 
   uninstall() {
-    return this.client.uninstallWorkspaceApp(this.workspaceId, this.key);
+    return this.client.uninstallWorkspaceApp(this.workspaceIdOrSlug, this.key);
   }
 
   listSecrets() {
-    return this.client.listWorkspaceAppSecrets(this.workspaceId, this.key);
+    return this.client.listWorkspaceAppSecrets(this.workspaceIdOrSlug, this.key);
   }
 
   createSecret(input: CreateWorkspaceAppSecretInput) {
-    return this.client.createWorkspaceAppSecret(this.workspaceId, this.key, input);
+    return this.client.createWorkspaceAppSecret(this.workspaceIdOrSlug, this.key, input);
   }
 
   deleteSecret(secretId: string) {
-    return this.client.deleteWorkspaceAppSecret(this.workspaceId, this.key, secretId);
+    return this.client.deleteWorkspaceAppSecret(this.workspaceIdOrSlug, this.key, secretId);
   }
 
   listOauthConnections() {
-    return this.client.listWorkspaceAppOauthConnections(this.workspaceId, this.key);
+    return this.client.listWorkspaceAppOauthConnections(this.workspaceIdOrSlug, this.key);
   }
 
   createOauthConnection(input: CreateWorkspaceAppOauthConnectionInput) {
-    return this.client.createWorkspaceAppOauthConnection(this.workspaceId, this.key, input);
+    return this.client.createWorkspaceAppOauthConnection(this.workspaceIdOrSlug, this.key, input);
   }
 
   deleteOauthConnection(connectionId: string) {
     return this.client.deleteWorkspaceAppOauthConnection(
-      this.workspaceId,
+      this.workspaceIdOrSlug,
       this.key,
       connectionId,
     );
   }
 
   listDeliveries() {
-    return this.client.listWorkspaceAppDeliveries(this.workspaceId, this.key);
+    return this.client.listWorkspaceAppDeliveries(this.workspaceIdOrSlug, this.key);
   }
 
   sendTestDelivery(input: SendWorkspaceAppTestDeliveryInput) {
-    return this.client.sendWorkspaceAppTestDelivery(this.workspaceId, this.key, input);
+    return this.client.sendWorkspaceAppTestDelivery(this.workspaceIdOrSlug, this.key, input);
   }
 
   replayDelivery(deliveryId: string) {
-    return this.client.replayWorkspaceAppDelivery(this.workspaceId, this.key, deliveryId);
+    return this.client.replayWorkspaceAppDelivery(this.workspaceIdOrSlug, this.key, deliveryId);
   }
 
   emitAmbientEvents(input: EmitAmbientEventsInputInput) {
-    return this.client.emitAppAmbientEvents(this.workspaceId, this.key, input);
+    return this.client.emitAppAmbientEvents(this.workspaceIdOrSlug, this.key, input);
   }
 
   createNotification(input: CreateNotificationInputInput) {
-    return this.client.createAppNotification(this.workspaceId, this.key, input);
+    return this.client.createAppNotification(this.workspaceIdOrSlug, this.key, input);
   }
 
   upsertIndexDocuments(input: BatchUpsertAppIndexDocumentsInput) {
-    return this.client.upsertAppIndexDocuments(this.workspaceId, this.key, input);
+    return this.client.upsertAppIndexDocuments(this.workspaceIdOrSlug, this.key, input);
   }
 
   deleteIndexDocuments(input: BatchDeleteAppIndexDocumentsInput) {
-    return this.client.deleteAppIndexDocuments(this.workspaceId, this.key, input);
+    return this.client.deleteAppIndexDocuments(this.workspaceIdOrSlug, this.key, input);
   }
 
   listFiles(query?: ListAppFilesQuery) {
-    return this.client.listAppFiles(this.workspaceId, this.key, query);
+    return this.client.listAppFiles(this.workspaceIdOrSlug, this.key, query);
   }
 
   createFile(input: CreateAppFileInput) {
-    return this.client.createAppFile(this.workspaceId, this.key, input);
+    return this.client.createAppFile(this.workspaceIdOrSlug, this.key, input);
   }
 
   executeAction(input: ExecuteAppActionInput) {
-    return this.client.executeAppAction(this.workspaceId, this.key, input);
+    return this.client.executeAppAction(this.workspaceIdOrSlug, this.key, input);
   }
 
   file(fileId: string): WorkspaceAppFileHandle {
-    return new WorkspaceAppFileHandle(this.client, this.workspaceId, this.key, fileId);
+    return new WorkspaceAppFileHandle(this.client, this.workspaceIdOrSlug, this.key, fileId);
   }
 }
 
 export class WorkspaceAppFileHandle {
   constructor(
     private readonly client: ColineApiClient,
-    readonly workspaceId: string,
+    readonly workspaceIdOrSlug: string,
     readonly appKey: string,
     readonly id: string,
   ) {}
 
   get() {
-    return this.client.getAppFileDocument(this.workspaceId, this.appKey, this.id);
+    return this.client.getAppFileDocument(this.workspaceIdOrSlug, this.appKey, this.id);
   }
 
   updateDocument(document: Record<string, unknown>) {
     return this.client.updateAppFileDocument(
-      this.workspaceId,
+      this.workspaceIdOrSlug,
       this.appKey,
       this.id,
       document,
@@ -3513,7 +3513,7 @@ export class WorkspaceAppFileHandle {
   }
 
   delete() {
-    return this.client.deleteAppFile(this.workspaceId, this.appKey, this.id);
+    return this.client.deleteAppFile(this.workspaceIdOrSlug, this.appKey, this.id);
   }
 }
 

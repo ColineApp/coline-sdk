@@ -135,8 +135,8 @@ const client = new ColineApiClient({
   apiKey: process.env.COLINE_API_KEY!,
 });
 
-// Fluent scoped handles
-const ws = client.workspace("acme");
+// Fluent scoped handles; pass the workspace ID or slug
+const ws = client.workspace("ws_123");
 const app = ws.app("com.acme.todos");
 
 // Create a file
