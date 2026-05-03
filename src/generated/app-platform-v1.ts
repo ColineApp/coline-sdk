@@ -640,7 +640,7 @@ export interface components {
             max_completion_tokens?: number;
             temperature?: number;
             top_p?: number;
-            /** @description Optional. When omitted, context is inferred from the messages array and the API key's workspace. */
+            /** @description Cursor context for any autocomplete surface. Common fields include surface, workspace_slug, entity_id, document_type, active_text_before_cursor, active_text_after_cursor, surrounding_context, code_language, and file_path. When omitted, context is inferred from the messages array and the API key's workspace. */
             tab_context?: {
                 [key: string]: unknown;
             };

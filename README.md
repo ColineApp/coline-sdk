@@ -412,20 +412,24 @@ const client = new ColineApiClient({
   apiKey: process.env.COLINE_API_KEY!,
 });
 
-// Stream text completions
+// Stream autocomplete for any editor
 for await (const text of client.streamTabText({
   tab_context: {
-    surface: "docs",
+    surface: "code",
     workspace_slug: "acme",
-    entity_id: "doc_123",
-    active_text_before_cursor: "The quick brown ",
+    entity_id: "src/app.ts",
+    document_type: "plaintext",
+    code_language: "typescript",
+    file_path: "src/app.ts",
+    active_text_before_cursor: "export function add(a: number, b: number) {\n  return ",
+    active_text_after_cursor: "\n}",
   },
 })) {
   process.stdout.write(text);
 }
 ```
 
-Supported surfaces: `notes`, `docs`, `messages`, `tasks`, `calendar`.
+Use any stable `surface` name your editor understands, such as `code`, `notes`, `email`, `issue`, or `comment`. Coline has special prompt handling for common surfaces, but the API accepts custom surfaces as long as you send cursor context.
 
 ## Login with Coline (OAuth)
 

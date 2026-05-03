@@ -869,7 +869,7 @@ export interface UpdateTaskInput {
 export interface TabChatCompletionInput {
   model?: string;
   tab_context: {
-    surface: "notes" | "docs" | "messages" | "tasks" | "calendar";
+    surface: string;
     workspace_slug: string;
     entity_id: string;
     active_text_before_cursor: string;
@@ -878,6 +878,8 @@ export interface TabChatCompletionInput {
     block_kind?: string;
     note_title?: string;
     document_title?: string;
+    code_language?: string;
+    file_path?: string;
     document_type?: "plaintext" | "markdown";
     taskboard_file_id?: string;
   };

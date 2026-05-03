@@ -10,6 +10,20 @@ function createJsonResponse(payload: unknown, status = 200): Response {
   });
 }
 
+async function readJsonBody(init: unknown) {
+  if (init instanceof Request) {
+    return init.clone().json() as Promise<unknown>;
+  }
+
+  const requestInit = init as { body?: BodyInit | null } | undefined;
+  const body = requestInit?.body;
+  if (typeof body !== "string") {
+    return null;
+  }
+
+  return JSON.parse(body) as unknown;
+}
+
 describe("ColineApiClient", () => {
   it("creates a raw generated app-platform client with auth headers", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
@@ -1002,7 +1016,7 @@ describe("ColineApiClient", () => {
                 },
                 capabilities: {
                   streaming: true,
-                  surfaces: ["notes", "docs"],
+                  surfaces: ["notes", "docs", "code"],
                 },
               },
             ],
@@ -1057,6 +1071,65 @@ describe("ColineApiClient", () => {
     });
 
     expect(completion.choices[0]?.message.content).toBe(" world");
+  });
+
+  it("creates code Tab completions through the OpenAI-compatible client", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      createJsonResponse({
+        data: {
+          id: "chatcmpl_code",
+          object: "chat.completion",
+          created: 1775200001,
+          model: "tab-v1",
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: "assistant",
+                content: "a + b",
+              },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 20,
+            completion_tokens: 3,
+            total_tokens: 23,
+          },
+        },
+      }),
+    );
+
+    const client = new ColineApiClient({
+      baseUrl: "https://api.coline.app",
+      fetch: fetchMock,
+    });
+
+    const completion = await client.createTabChatCompletion({
+      model: "tab-v1",
+      tab_context: {
+        surface: "code",
+        workspace_slug: "acme",
+        entity_id: "src/app.ts",
+        document_type: "plaintext",
+        code_language: "typescript",
+        file_path: "src/app.ts",
+        active_text_before_cursor: "export function add(a: number, b: number) {\n  return ",
+        active_text_after_cursor: "\n}",
+        surrounding_context: "package: @acme/app",
+      },
+    });
+
+    expect(completion.choices[0]?.message.content).toBe("a + b");
+    expect(await readJsonBody(fetchMock.mock.calls[0]?.[0])).toMatchObject({
+      model: "tab-v1",
+      stream: false,
+      tab_context: {
+        surface: "code",
+        code_language: "typescript",
+        file_path: "src/app.ts",
+      },
+    });
   });
 
   it("builds Login with Coline authorize URLs and exchanges OAuth tokens", async () => {
